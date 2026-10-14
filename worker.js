@@ -37,6 +37,25 @@ const HOME = `<!DOCTYPE html>
   .ghost{font:inherit;font-weight:700;color:var(--ink);background:none;border:0;cursor:pointer;opacity:.7;padding:10px 14px}
   :focus-visible{outline:4px solid var(--ink);outline-offset:4px}
 
+  /* cinematic eye opening */
+  #eye{position:fixed;inset:0;z-index:5;background:#000;display:grid;place-items:center;overflow:hidden;transition:opacity .9s,visibility 0s}
+  #eye.gone{opacity:0;visibility:hidden;pointer-events:none;transition:opacity .9s,visibility 0s .9s}
+  .eyewrap{width:min(78vw,380px);animation:dive 1.2s 5.5s cubic-bezier(.75,0,1,.55) both}
+  @keyframes dive{from{transform:scale(1)}to{transform:scale(55)}}
+  .eyesvg{width:100%;display:block;filter:drop-shadow(0 0 16px rgba(124,200,255,.5))}
+  .lash{stroke-dasharray:720;stroke-dashoffset:720;animation:draw 1s .3s ease-out forwards}
+  @keyframes draw{to{stroke-dashoffset:0}}
+  .lidT{animation:lidT 4.2s .6s both}.lidB{animation:lidB 4.2s .6s both}
+  @keyframes lidT{0%,18%{transform:translateY(0);animation-timing-function:cubic-bezier(.6,0,.2,1)}48%,74%{transform:translateY(-100px)}80%{transform:translateY(0)}88%,100%{transform:translateY(-100px)}}
+  @keyframes lidB{0%,18%{transform:translateY(0);animation-timing-function:cubic-bezier(.6,0,.2,1)}48%,74%{transform:translateY(100px)}80%{transform:translateY(0)}88%,100%{transform:translateY(100px)}}
+  .iris{animation:look 3.2s 2.3s ease-in-out both}
+  @keyframes look{0%{transform:translateX(0)}30%{transform:translateX(-24px)}65%{transform:translateX(24px)}100%{transform:translateX(0)}}
+  .vig{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at center,transparent 35%,rgba(0,0,0,.85) 100%)}
+  #skipEye{position:absolute;bottom:calc(22px + env(safe-area-inset-bottom,0px));color:#fff;opacity:.5}
+  .cbar{position:fixed;left:0;right:0;height:11vh;background:#000;z-index:4;transition:transform 1.5s cubic-bezier(.7,0,.2,1)}
+  .cbar.t{top:0}.cbar.b{bottom:0}.cbar.t.out{transform:translateY(-100%)}.cbar.b.out{transform:translateY(100%)}
+  #splash:not(.live) .inner *{opacity:0;animation:none!important}
+
   /* splash */
   .fan{position:relative;height:130px;margin-bottom:18px}
   .tile{position:absolute;left:50%;top:18px;width:96px;height:96px;margin-left:-48px;border:3px solid var(--ink);border-radius:26px;
@@ -102,6 +121,26 @@ const HOME = `<!DOCTYPE html>
 </defs></svg>
 
 <div id="bg" aria-hidden="true"></div>
+
+<div class="cbar t" id="bt"></div><div class="cbar b" id="bb"></div>
+<section id="eye" aria-hidden="true">
+  <div class="eyewrap">
+    <svg class="eyesvg" viewBox="0 0 300 160">
+      <defs><clipPath id="ec"><path d="M10 80Q150 -12 290 80Q150 172 10 80Z"/></clipPath>
+        <radialGradient id="ig"><stop offset="55%" stop-color="#4fa9e8"/><stop offset="100%" stop-color="#7cc8ff"/></radialGradient></defs>
+      <g clip-path="url(#ec)">
+        <rect width="300" height="160" fill="#fff"/>
+        <g class="iris"><circle cx="150" cy="80" r="46" fill="url(#ig)"/><circle cx="150" cy="80" r="46" fill="none" stroke="#1d1636" stroke-width="4"/>
+          <circle cx="150" cy="80" r="18" fill="#000"/><circle cx="138" cy="67" r="6" fill="#fff" opacity=".9"/></g>
+        <rect class="lidT" x="0" y="-8" width="300" height="88" fill="#000"/>
+        <rect class="lidB" x="0" y="80" width="300" height="88" fill="#000"/>
+      </g>
+      <path class="lash" d="M10 80Q150 -12 290 80Q150 172 10 80Z" fill="none" stroke="#fff" stroke-width="3" stroke-linejoin="round"/>
+    </svg>
+  </div>
+  <div class="vig"></div>
+  <button class="ghost" id="skipEye">Skip</button>
+</section>
 
 <section class="layer" id="splash">
   <div class="inner">
@@ -173,10 +212,21 @@ const HOME = `<!DOCTYPE html>
     if(idx<dots.length-1)track.scrollBy({left:track.clientWidth,behavior:'smooth'});else show('picker');
   };
   $('skip1').onclick=$('skip2').onclick=function(){show('picker')};
-  $('back').onclick=function(){track.scrollLeft=0;show('splash');timer=setTimeout(function(){show('slides')},3800)};
+  $('back').onclick=function(){var sp=$('splash');sp.classList.remove('live');void sp.offsetWidth;sp.classList.add('live');track.scrollLeft=0;show('splash');timer=setTimeout(function(){show('slides')},3800)};
 
-  if(location.hash==='#pick'){show('picker')}
-  else{timer=setTimeout(function(){show('slides')},3800)}
+  // cinematic opening: black screen, eye opens, we fall into the pupil, then the world appears
+  var eye=$('eye'),eyeDone=false,eyeTimer;
+  function endEye(){
+    if(eyeDone)return;eyeDone=true;clearTimeout(eyeTimer);
+    $('splash').classList.add('live');eye.classList.add('gone');
+    setTimeout(function(){$('bt').classList.add('out');$('bb').classList.add('out')},350);
+    clearTimeout(timer);timer=setTimeout(function(){show('slides')},4200);
+  }
+  $('skipEye').onclick=eye.onclick=endEye;
+  if(location.hash==='#pick'){
+    eyeDone=true;eye.classList.add('gone');$('bt').classList.add('out');$('bb').classList.add('out');show('picker');
+  }else if(window.matchMedia('(prefers-reduced-motion: reduce)').matches){endEye()}
+  else{eyeTimer=setTimeout(endEye,6700)}
 </script>
 </body></html>`;
 
