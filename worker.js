@@ -129,7 +129,8 @@ export default {
         'if(u.indexOf(O)===0)return P+u.slice(O.length);' +
         'if(u[0]==="/"&&u[1]!=="/"&&u.indexOf(P+"/")!==0)return P+u;return u}' +
         'var of=window.fetch;window.fetch=function(i,o){if(typeof i==="string")i=f(i);return of.call(this,i,o)};' +
-        'var ox=XMLHttpRequest.prototype.open;XMLHttpRequest.prototype.open=function(m,u){arguments[1]=f(u);return ox.apply(this,arguments)};})();';
+        'var ox=XMLHttpRequest.prototype.open;XMLHttpRequest.prototype.open=function(m,u){arguments[1]=f(u);return ox.apply(this,arguments)};' +
+        'var ow=window.open;window.open=function(u){if(u&&u!=="about:blank"){location.href=f(String(u));return window}return ow.apply(this,arguments)};})();';
 
       const attrs = ['href', 'src', 'action', 'poster', 'data-src'];
       const rewritten = new HTMLRewriter()
