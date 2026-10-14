@@ -324,7 +324,11 @@ export default {
         'var of=window.fetch;window.fetch=function(i,o){if(typeof i==="string")i=f(i);return of.call(this,i,o)};' +
         'var ox=XMLHttpRequest.prototype.open;XMLHttpRequest.prototype.open=function(m,u){arguments[1]=f(u);return ox.apply(this,arguments)};' +
         'var ow=window.open;window.open=function(u){if(u&&u!=="about:blank"){location.href=f(String(u));return window}return ow.apply(this,arguments)};' +
-        'if(navigator.serviceWorker){navigator.serviceWorker.register=function(){return Promise.resolve({})}}})();';
+        'if(navigator.serviceWorker){navigator.serviceWorker.register=function(){return Promise.resolve({})}}' +
+        'function mk(){if(document.getElementById("__menu")||!document.documentElement)return;var a=document.createElement("a");a.id="__menu";a.href="/__menu#pick";a.textContent="Menu";' +
+        'a.style.cssText="position:fixed!important;left:10px!important;bottom:calc(10px + env(safe-area-inset-bottom,0px))!important;z-index:2147483647!important;display:block!important;visibility:visible!important;opacity:.9!important;pointer-events:auto!important;background:#ff6b81;color:#1d1636;border:2px solid #1d1636;font:800 13px system-ui,sans-serif;padding:8px 14px;border-radius:999px;text-decoration:none;margin:0;width:auto;height:auto";' +
+        'document.documentElement.appendChild(a)}' +
+        'mk();new MutationObserver(mk).observe(document.documentElement,{childList:true});setInterval(mk,800);document.addEventListener("DOMContentLoaded",mk);})();';
       const attrs = ['href', 'src', 'action', 'poster', 'data-src'];
       return new HTMLRewriter()
         .on('*', {
@@ -345,14 +349,6 @@ export default {
           },
         })
         .on('head', { element(el) { el.prepend('<script>' + shim + '</script>', { html: true }); } })
-        .on('body', {
-          element(el) {
-            el.append(
-              '<a href="/__menu#pick" style="position:fixed;left:10px;bottom:calc(10px + env(safe-area-inset-bottom,0px));z-index:2147483647;background:#ff6b81;color:#1d1636;border:2px solid #1d1636;font:800 13px system-ui,sans-serif;padding:8px 14px;border-radius:999px;text-decoration:none;opacity:.9">Menu</a>',
-              { html: true }
-            );
-          },
-        })
         .transform(new Response(upstream.body, { status: upstream.status, headers: out }));
     }
 
