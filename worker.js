@@ -1,4 +1,4 @@
-// Cloudflare Worker: menu at "/" and a proxy that serves the chosen site at the root,
+ Cloudflare Worker: menu at "/" and a proxy that serves the chosen site at the root,
 // so every link, script and image path on the site works exactly as it normally would.
 
 const SITES = {
@@ -11,7 +11,7 @@ const HOME = `<!DOCTYPE html>
 <html lang="en"><head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#efe9ff">
+<meta name="theme-color" content="#0a0714">
 <title>What site do you want?</title>
 <style>
   :root{--paper:#efe9ff;--ink:#1d1636;--yellow:#ffd23f;--sky:#7cc8ff;--green:#8fdb6a;--coral:#ff6b81}
@@ -107,6 +107,32 @@ const HOME = `<!DOCTYPE html>
   .desc{font-size:.95rem;opacity:.75;margin-top:3px}
   .c1{background:var(--yellow)}.c2{background:var(--sky)}.c3{background:var(--green)}
   @media (prefers-reduced-motion:reduce){*{animation:none!important}.tile{transform:translateX(var(--x)) rotate(var(--r))}.bar i{width:100%}.card{opacity:1}}
+
+  /* dark theme */
+  body{background-color:#0a0714;background-image:radial-gradient(ellipse at 50% -10%,rgba(122,76,255,.32),transparent 62%),radial-gradient(rgba(255,255,255,.07) 1.5px,transparent 1.5px);
+    background-size:auto,24px 24px;color:#f4f0ff}
+  .shape{opacity:.3;border-color:rgba(255,255,255,.4)}
+  .ghost{color:#f4f0ff}
+  :focus-visible{outline-color:#fff}
+  .t1{--c:#ffd23f}.t2{--c:#5ab8ff}.t3{--c:#7be35a}
+  .tile{background:#171229;border-color:var(--c);box-shadow:0 0 36px -6px var(--c),0 6px 0 rgba(0,0,0,.6)}
+  .sub{opacity:.65}
+  .btn{background:var(--coral);border-color:var(--coral);color:#150f26;box-shadow:0 0 28px -4px var(--coral),0 6px 0 #9c3446}
+  .btn:hover{box-shadow:0 0 40px -2px var(--coral),0 8px 0 #9c3446}
+  .btn:active{box-shadow:0 0 20px -4px var(--coral),0 0 0 #9c3446}
+  .bar{background:#171229;border-color:#4a3d7a}
+  .bar i{background:linear-gradient(90deg,var(--coral),#ffb86b)}
+  .slide:nth-child(1){--c:#ffd23f}.slide:nth-child(2){--c:#5ab8ff}.slide:nth-child(3){--c:#7be35a}
+  .art{background:#171229!important;border-color:var(--c);box-shadow:0 0 54px -8px var(--c),0 8px 0 rgba(0,0,0,.6)}
+  .dots i{background:#2a2145;border-color:#4a3d7a}
+  .dots i.on{background:var(--coral);border-color:var(--coral);box-shadow:0 0 14px var(--coral)}
+  .c1{--c:#ffd23f}.c2{--c:#5ab8ff}.c3{--c:#7be35a}
+  .card{background:linear-gradient(135deg,#1c1535,#130f26);border:2px solid var(--c);color:#f4f0ff;box-shadow:0 0 26px -6px var(--c),0 6px 0 rgba(0,0,0,.55)}
+  .card:hover{box-shadow:0 0 40px -2px var(--c),0 9px 0 rgba(0,0,0,.55)}
+  .card:active{box-shadow:0 0 18px -4px var(--c),0 0 0 rgba(0,0,0,.55)}
+  .card::after{background:rgba(255,255,255,.12)}
+  .ico{border-color:var(--c);background:rgba(255,255,255,.06)}
+  .desc{opacity:.65}
 </style></head><body>
 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
@@ -316,6 +342,9 @@ export default {
 
     // HTML: fix absolute links, drop blockers, add helper script and Menu button.
     if (type.includes('text/html')) {
+      if (Number(out.get('content-length')) > 2000000) {
+        return new Response(upstream.body, { status: upstream.status, headers: out });
+      }
       out.delete('content-encoding');
       out.delete('content-length');
       const shim =
@@ -324,25 +353,27 @@ export default {
         'var of=window.fetch;window.fetch=function(i,o){if(typeof i==="string")i=f(i);return of.call(this,i,o)};' +
         'var ox=XMLHttpRequest.prototype.open;XMLHttpRequest.prototype.open=function(m,u){arguments[1]=f(u);return ox.apply(this,arguments)};' +
         'var ow=window.open;window.open=function(u){if(u&&u!=="about:blank"){location.href=f(String(u));return window}return ow.apply(this,arguments)};' +
+        'if(window.__shim)return;window.__shim=1;' +
+        'function pp(C,p){try{var d=Object.getOwnPropertyDescriptor(C.prototype,p);if(!d||!d.set)return;Object.defineProperty(C.prototype,p,{get:d.get,set:function(v){d.set.call(this,f(v))},configurable:true,enumerable:d.enumerable})}catch(e){}}' +
+        '[[HTMLIFrameElement,"src"],[HTMLScriptElement,"src"],[HTMLImageElement,"src"],[HTMLLinkElement,"href"],[HTMLAnchorElement,"href"],[HTMLSourceElement,"src"],[HTMLMediaElement,"src"],[HTMLEmbedElement,"src"]].forEach(function(x){pp(x[0],x[1])});' +
+        'var sa=Element.prototype.setAttribute;Element.prototype.setAttribute=function(n,v){if(typeof v==="string"&&/^(src|href|action|data-src|poster)$/i.test(n))v=f(v);return sa.call(this,n,v)};' +
         'if(navigator.serviceWorker){navigator.serviceWorker.register=function(){return Promise.resolve({})}}' +
         'function mk(){if(document.getElementById("__menu")||!document.documentElement)return;var a=document.createElement("a");a.id="__menu";a.href="/__menu#pick";a.textContent="Menu";' +
         'a.style.cssText="position:fixed!important;left:10px!important;bottom:calc(10px + env(safe-area-inset-bottom,0px))!important;z-index:2147483647!important;display:block!important;visibility:visible!important;opacity:.9!important;pointer-events:auto!important;background:#ff6b81;color:#1d1636;border:2px solid #1d1636;font:800 13px system-ui,sans-serif;padding:8px 14px;border-radius:999px;text-decoration:none;margin:0;width:auto;height:auto";' +
         'document.documentElement.appendChild(a)}' +
-        'mk();new MutationObserver(mk).observe(document.documentElement,{childList:true});setInterval(mk,800);document.addEventListener("DOMContentLoaded",mk);})();';
-      const attrs = ['href', 'src', 'action', 'poster', 'data-src'];
-      return new HTMLRewriter()
-        .on('*', {
+        'if(window.top===window){mk();new MutationObserver(mk).observe(document.documentElement,{childList:true});setInterval(mk,800);document.addEventListener("DOMContentLoaded",mk)}})();';
+      const rw = new HTMLRewriter();
+      for (const a of ['href', 'src', 'action', 'poster', 'data-src']) {
+        rw.on('[' + a + ']', {
           element(el) {
-            for (const a of attrs) {
-              const v = el.getAttribute(a);
-              if (v) {
-                const nv = fix(v);
-                if (nv !== v) el.setAttribute(a, nv);
-              }
-            }
-            if (el.hasAttribute('integrity')) el.removeAttribute('integrity');
+            const v = el.getAttribute(a);
+            const nv = fix(v);
+            if (nv !== v) el.setAttribute(a, nv);
           },
-        })
+        });
+      }
+      rw.on('[integrity]', { element(el) { el.removeAttribute('integrity'); } });
+      return rw
         .on('meta', {
           element(el) {
             if ((el.getAttribute('http-equiv') || '').toLowerCase() === 'content-security-policy') el.remove();
