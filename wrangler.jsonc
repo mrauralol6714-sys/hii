@@ -1,6 +1,8 @@
-
-  // ...
+{
+  "name": "site-menu",
+  "main": "worker.js",
+  "compatibility_date": "2025-01-01",
   "observability": {
-    "enabled": false
-  },
-  // ...
+    "enabled": true
+  }
+}
