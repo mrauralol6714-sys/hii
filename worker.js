@@ -1,5 +1,5 @@
 const SITES = {
-  duckmath: 'https://duckmath.org',
+  duckmath: 'https://d2gve52fz9syn8.cloudfront.net',
   cloud: 'https://ixlisfun.b-cdn.net',
   mc: 'https://mantle-menu.pages.dev',
 };
@@ -253,6 +253,24 @@ const HOME = `<!DOCTYPE html>
 </script>
 </body></html>`;
 
+const DEBUG_JS = String.raw`(function(){
+if(window.__dbg)return;window.__dbg=1;
+var errs=[],box;
+function render(){var r=document.documentElement;if(!r)return;
+ if(!box||!box.isConnected){box=document.createElement("div");
+  box.style.cssText="position:fixed;top:0;left:0;right:0;max-height:45%;overflow:auto;z-index:2147483646;background:#300;color:#fff;font:11px monospace;padding:4px;white-space:pre-wrap;opacity:.92";
+  r.appendChild(box)}
+ box.textContent=(window.top===window?"TOP ":"FRAME ")+location.pathname+" | errors: "+errs.length+"\n"+errs.slice(-8).join("\n")}
+function add(m){errs.push(String(m).slice(0,220));render()}
+window.addEventListener("error",function(e){var t=e.target;
+ if(t&&t!==window&&(t.src||t.href))add("LOAD FAIL "+(t.src||t.href));else add("ERR "+e.message+" @"+(e.filename||"")+":"+e.lineno)},true);
+window.addEventListener("unhandledrejection",function(e){add("REJECT "+((e.reason&&e.reason.message)||e.reason))});
+var f0=window.fetch;
+window.fetch=function(i,o){var u=typeof i==="string"?i:(i&&i.url);
+ return f0.call(this,i,o).then(function(r){if(!r.ok)add("HTTP "+r.status+" "+u);return r},function(e){add("FETCH FAIL "+u+" "+e.message);throw e})};
+render();setInterval(render,1000);
+})();`;
+
 const STRIP = [
   'content-security-policy',
   'content-security-policy-report-only',
@@ -277,6 +295,16 @@ export default {
         },
       });
     }
+    if (path === '/__debug' || path === '/__debug/off') {
+      const on = path === '/__debug';
+      return new Response(null, {
+        status: 302,
+        headers: {
+          location: '/',
+          'set-cookie': 'dbg=' + (on ? '1; Max-Age=86400' : '; Max-Age=0') + '; Path=/; Secure; SameSite=Lax',
+        },
+      });
+    }
     // Choose a site, remember it, and go to it.
     if (path.startsWith('/__go/')) {
       const key = path.slice(6);
@@ -298,6 +326,7 @@ export default {
       return new Response(HOME, { headers: { 'content-type': 'text/html;charset=utf-8' } });
     }
 
+    const dbg = /(?:^|;\s*)dbg=1/.test(rawCookie);
     const host = new URL(origin).host;
     const target = origin + path + url.search;
     if (request.headers.get('upgrade') === 'websocket') return fetch(target, request);
@@ -314,7 +343,7 @@ export default {
     const headers = new Headers(request.headers);
     headers.set('Referer', origin + '/');
     if (headers.has('Origin')) headers.set('Origin', origin);
-    const cookie = rawCookie.split(/;\s*/).filter((c) => c && !c.startsWith('site=')).join('; ');
+    const cookie = rawCookie.split(/;\s*/).filter((c) => c && !c.startsWith('site=') && !c.startsWith('dbg=')).join('; ');
     if (cookie) headers.set('cookie', cookie); else headers.delete('cookie');
     const hasBody = !['GET', 'HEAD'].includes(request.method);
     const upstream = await fetch(target, {
@@ -359,6 +388,7 @@ export default {
         'a.style.cssText="position:fixed!important;left:10px!important;bottom:calc(10px + env(safe-area-inset-bottom,0px))!important;z-index:2147483647!important;display:block!important;visibility:visible!important;opacity:.9!important;pointer-events:auto!important;background:#ff6b81;color:#1d1636;border:2px solid #1d1636;font:800 13px system-ui,sans-serif;padding:8px 14px;border-radius:999px;text-decoration:none;margin:0;width:auto;height:auto";' +
         'document.documentElement.appendChild(a)}' +
         'if(window.top===window){mk();new MutationObserver(mk).observe(document.documentElement,{childList:true});setInterval(mk,800);document.addEventListener("DOMContentLoaded",mk)}})();';
+      const tag = '<script>' + shim + (dbg ? DEBUG_JS : '') + '</script>';
       const rw = new HTMLRewriter();
       for (const a of ['href', 'src', 'action', 'poster', 'data-src']) {
         rw.on('[' + a + ']', {
@@ -376,7 +406,8 @@ export default {
             if ((el.getAttribute('http-equiv') || '').toLowerCase() === 'content-security-policy') el.remove();
           },
         })
-        .on('head', { element(el) { el.prepend('<script>' + shim + '</script>', { html: true }); } })
+        .on('html', { element(el) { el.prepend(tag, { html: true }); } })
+        .on('head', { element(el) { el.prepend(tag, { html: true }); } })
         .transform(new Response(upstream.body, { status: upstream.status, headers: out }));
     }
 
