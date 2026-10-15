@@ -1,6 +1,3 @@
- Cloudflare Worker: menu at "/" and a proxy that serves the chosen site at the root,
-// so every link, script and image path on the site works exactly as it normally would.
-
 const SITES = {
   duckmath: 'https://duckmath.org',
   cloud: 'https://ixlisfun.b-cdn.net',
