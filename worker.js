@@ -1,7 +1,7 @@
 const SITES = {
   duckmath: 'https://d2gve52fz9syn8.cloudfront.net',
-  cloud: 'https://ixlisfun.b-cdn.net',
   smart: 'https://smartlearningmath.b-cdn.net',
+  secret: 'https://dulo.mov',
 };
 
 const HOME = `<!DOCTYPE html>
@@ -80,6 +80,7 @@ const HOME = `<!DOCTYPE html>
   .ico svg{width:24px;height:24px}
   .name{font-family:var(--serif);font-size:1.3rem}
   .desc{font-size:.9rem;color:var(--mut);margin-top:3px}
+  .secret{border-style:dashed;border-color:rgba(230,181,103,.35)}
   .again{margin-top:26px}
   @media (prefers-reduced-motion:reduce){*{animation:none!important}.card{opacity:1}.rule{width:120px}}
 </style></head><body>
@@ -91,6 +92,8 @@ const HOME = `<!DOCTYPE html>
     <path d="M7 8h10a4 4 0 0 1 4 4.2l-.6 4a2.2 2.2 0 0 1-3.8 1.2L15 15.5H9L7.4 17.4a2.2 2.2 0 0 1-3.8-1.2l-.6-4A4 4 0 0 1 7 8z"/><path d="M8.5 10.8v2.4M7.3 12h2.4M15.5 11.4h.01M17.2 12.6h.01"/></symbol>
   <symbol id="i-learn" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
     <path d="M3 9l9-4.5L21 9l-9 4.5L3 9z"/><path d="M7 11.5V16c0 1.2 2.2 2.5 5 2.5s5-1.3 5-2.5v-4.5M21 9v5"/></symbol>
+  <symbol id="i-lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="5" y="11" width="14" height="9" rx="2.5"/><path d="M8 11V8a4 4 0 0 1 8 0v3M12 15v2"/></symbol>
 </defs></svg>
 
 <div id="bg" aria-hidden="true"><div class="fog f1"></div><div class="fog f2"></div></div>
@@ -130,12 +133,12 @@ const HOME = `<!DOCTYPE html>
     <h3>Where to?</h3>
     <p class="lead">Pick a site to get started.</p>
     <div class="options">
-      <a class="card" style="--d:.05s" href="/__go/duckmath"><span class="ico"><svg><use href="#i-math"/></svg></span>
-        <span><div class="name">DuckMath</div><div class="desc">Math practice and study tools</div></span></a>
-      <a class="card" style="--d:.17s" href="/__go/cloud"><span class="ico"><svg><use href="#i-game"/></svg></span>
-        <span><div class="name">Cloud Games</div><div class="desc">Browser games, ready to play</div></span></a>
-      <a class="card" style="--d:.29s" href="/__go/smart"><span class="ico"><svg><use href="#i-learn"/></svg></span>
+      <a class="card" style="--d:.05s" href="/__go/duckmath"><span class="ico"><svg><use href="#i-game"/></svg></span>
+        <span><div class="name">DuckMath</div><div class="desc">Fun games</div></span></a>
+      <a class="card" style="--d:.17s" href="/__go/smart"><span class="ico"><svg><use href="#i-learn"/></svg></span>
         <span><div class="name">Smart Learning</div><div class="desc">Math and learning tools</div></span></a>
+      <a class="card secret" style="--d:.29s" href="/__go/secret"><span class="ico"><svg><use href="#i-lock"/></svg></span>
+        <span><div class="name">Secret</div><div class="desc">Shh. Tap to find out.</div></span></a>
     </div>
     <button class="ghost again" id="again">Replay intro</button>
   </div>
