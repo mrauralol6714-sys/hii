@@ -1,38 +1,37 @@
 const SITES = {
   duckmath: 'https://d2gve52fz9syn8.cloudfront.net',
   cloud: 'https://ixlisfun.b-cdn.net',
-  mc: 'https://mantle-menu.pages.dev',
+  smart: 'https://smartlearningmath.b-cdn.net',
 };
 
 const HOME = `<!DOCTYPE html>
 <html lang="en"><head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#0a0714">
-<title>What site do you want?</title>
+<meta name="theme-color" content="#07090d">
+<title>Where to?</title>
 <style>
-  :root{--paper:#efe9ff;--ink:#1d1636;--yellow:#ffd23f;--sky:#7cc8ff;--green:#8fdb6a;--coral:#ff6b81}
+  :root{--bg:#07090d;--ink:#eceae4;--mut:rgba(236,234,228,.6);--amber:#e6b567;
+    --serif:"Iowan Old Style","Palatino Linotype","Book Antiqua",Georgia,serif;
+    --sans:"Inter","Segoe UI Variable","Helvetica Neue",system-ui,sans-serif}
   *{box-sizing:border-box}
   html,body{height:100%;margin:0}
-  body{background-color:var(--paper);
-    background-image:radial-gradient(rgba(29,22,54,.13) 1.5px,transparent 1.5px);background-size:22px 22px;
-    color:var(--ink);font-family:"Avenir Next","Nunito","Segoe UI Variable","Trebuchet MS",system-ui,sans-serif;overflow:hidden}
+  body{background:var(--bg);color:var(--ink);font-family:var(--sans);overflow:hidden}
   #bg{position:fixed;inset:0;z-index:0;overflow:hidden}
-  .shape{position:absolute;border:3px solid var(--ink);opacity:.85;animation:drift 6s ease-in-out infinite alternate}
-  @keyframes drift{from{transform:translateY(0) rotate(0)}to{transform:translateY(-24px) rotate(28deg)}}
+  .fog{position:absolute;width:70vmax;height:70vmax;border-radius:50%;filter:blur(70px);animation:fog 18s ease-in-out infinite alternate}
+  .f1{background:rgba(52,130,150,.32);top:-38vmax;left:-24vmax}
+  .f2{background:rgba(230,181,103,.13);bottom:-42vmax;right:-28vmax;animation-delay:-9s}
+  @keyframes fog{to{transform:translate(9vmax,6vmax) scale(1.15)}}
+  .grain{position:fixed;inset:0;z-index:3;pointer-events:none;opacity:.09;mix-blend-mode:overlay;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)' opacity='.55'/></svg>")}
 
   .layer{position:fixed;inset:0;z-index:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
     padding:calc(24px + env(safe-area-inset-top,0px)) 24px calc(24px + env(safe-area-inset-bottom,0px));text-align:center;
-    transition:opacity .55s,transform .55s,visibility 0s;overflow-y:auto}
-  .layer.hide{opacity:0;visibility:hidden;pointer-events:none;transform:scale(1.05);transition:opacity .55s,transform .55s,visibility 0s .55s}
+    transition:opacity .8s,transform .8s,visibility 0s;overflow-y:auto;overflow-x:hidden}
+  .layer.hide{opacity:0;visibility:hidden;pointer-events:none;transform:scale(1.03);transition:opacity .8s,transform .8s,visibility 0s .8s}
   .inner{width:100%;max-width:460px}
-
-  .btn{font:inherit;font-weight:800;font-size:1.15rem;color:var(--ink);background:var(--coral);cursor:pointer;
-    border:3px solid var(--ink);border-radius:18px;padding:16px 34px;box-shadow:0 6px 0 var(--ink);transition:transform .1s,box-shadow .1s}
-  .btn:hover{transform:translateY(-2px);box-shadow:0 8px 0 var(--ink)}
-  .btn:active{transform:translateY(6px);box-shadow:0 0 0 var(--ink)}
-  .ghost{font:inherit;font-weight:700;color:var(--ink);background:none;border:0;cursor:pointer;opacity:.7;padding:10px 14px}
-  :focus-visible{outline:4px solid var(--ink);outline-offset:4px}
+  .ghost{font:inherit;font-size:.85rem;letter-spacing:.12em;color:var(--ink);background:none;border:0;cursor:pointer;opacity:.55;padding:10px 14px}
+  .ghost:hover{opacity:.9}
+  :focus-visible{outline:2px solid var(--amber);outline-offset:4px}
 
   /* cinematic eye opening */
   #eye{position:fixed;inset:0;z-index:5;background:#000;display:grid;place-items:center;overflow:hidden;transition:opacity .9s,visibility 0s}
@@ -51,99 +50,51 @@ const HOME = `<!DOCTYPE html>
   #skipEye{position:absolute;bottom:calc(22px + env(safe-area-inset-bottom,0px));color:#fff;opacity:.5}
   .cbar{position:fixed;left:0;right:0;height:11vh;background:#000;z-index:4;transition:transform 1.5s cubic-bezier(.7,0,.2,1)}
   .cbar.t{top:0}.cbar.b{bottom:0}.cbar.t.out{transform:translateY(-100%)}.cbar.b.out{transform:translateY(100%)}
-  #splash:not(.live) .inner *{opacity:0;animation:none!important}
+  #intro:not(.live) .inner *{opacity:0;animation:none!important}
 
-  /* splash */
-  .fan{position:relative;height:130px;margin-bottom:18px}
-  .tile{position:absolute;left:50%;top:18px;width:96px;height:96px;margin-left:-48px;border:3px solid var(--ink);border-radius:26px;
-    box-shadow:0 6px 0 var(--ink);display:grid;place-items:center;animation:fan 1s cubic-bezier(.2,1.25,.3,1) both}
-  .tile svg{width:62px;height:62px}
-  .t1{background:var(--yellow);--x:-88px;--r:-12deg;animation-delay:.1s}
-  .t2{background:var(--sky);--x:0px;--r:0deg;top:6px;animation-delay:.3s}
-  .t3{background:var(--green);--x:88px;--r:12deg;animation-delay:.2s}
-  @keyframes fan{from{transform:translateX(0) translateY(-80px) rotate(0) scale(.5);opacity:0}
-    to{transform:translateX(var(--x)) rotate(var(--r)) scale(1);opacity:1}}
-  .word{font-size:clamp(3.2rem,16vw,5.2rem);font-weight:900;letter-spacing:-.04em;line-height:1;margin:6px 0 10px}
-  .word span{display:inline-block;animation:letter .6s cubic-bezier(.2,1.5,.3,1) both}
-  @keyframes letter{from{opacity:0;transform:translateY(44px) scale(.5) rotate(-8deg)}to{opacity:1;transform:none}}
-  .sub{font-size:1.1rem;opacity:.72;margin:0 0 26px;animation:letter .6s 1.1s both}
-  .bar{width:200px;height:16px;margin:0 auto;border:3px solid var(--ink);border-radius:99px;overflow:hidden;background:#fff;animation:letter .5s 1.2s both}
-  .bar i{display:block;height:100%;width:0;background:var(--coral);animation:fill 2.2s 1.2s ease-in-out forwards}
-  @keyframes fill{to{width:100%}}
-  .skip{position:absolute;top:calc(14px + env(safe-area-inset-top,0px));right:14px}
 
-  /* slider */
-  .track{display:flex;width:100%;max-width:520px;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none}
-  .track::-webkit-scrollbar{display:none}
-  .slide{flex:none;width:100%;scroll-snap-align:center;padding:0 10px}
-  .art{width:190px;height:190px;margin:0 auto 30px;border:3px solid var(--ink);border-radius:44px;box-shadow:0 8px 0 var(--ink);
-    display:grid;place-items:center;animation:bob 3s ease-in-out infinite}
-  .art svg{width:120px;height:120px}
-  @keyframes bob{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-12px) rotate(3deg)}}
-  .slide h2{font-size:clamp(2rem,8vw,2.7rem);margin:0 0 10px;font-weight:900;letter-spacing:-.03em;line-height:1.05}
-  .slide p{font-size:1.1rem;opacity:.75;margin:0 auto;max-width:300px}
-  .dots{display:flex;gap:8px;justify-content:center;margin:30px 0 24px}
-  .dots i{width:12px;height:12px;border-radius:99px;border:3px solid var(--ink);background:#fff;transition:width .3s,background .3s}
-  .dots i.on{width:34px;background:var(--coral)}
+  /* intro */
+  .rule{width:0;height:1px;background:var(--amber);margin:0 auto 30px;animation:rule 1.6s .2s ease-out forwards}
+  @keyframes rule{to{width:120px}}
+  .title{font-family:var(--serif);font-weight:400;text-transform:uppercase;font-size:clamp(1.8rem,8.5vw,3.6rem);
+    letter-spacing:.42em;margin:0 -.42em 0 0;animation:reveal 2.4s .5s cubic-bezier(.2,.7,.2,1) both}
+  @keyframes reveal{from{opacity:0;letter-spacing:.8em;filter:blur(14px)}to{opacity:1;letter-spacing:.42em;filter:blur(0)}}
+  .tag{margin-top:26px;font-size:.75rem;letter-spacing:.32em;text-transform:uppercase;color:var(--mut);animation:fade 1.6s 2.1s both}
+  @keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  .skip{position:absolute;bottom:calc(22px + env(safe-area-inset-bottom,0px))}
 
   /* picker */
-  h3{font-size:clamp(2rem,8vw,2.6rem);line-height:1.05;margin:0 0 24px;font-weight:900;letter-spacing:-.02em}
-  .options{display:flex;flex-direction:column;gap:18px}
-  .card{position:relative;overflow:hidden;display:flex;align-items:center;gap:16px;text-align:left;padding:14px 18px 14px 14px;color:var(--ink);
-    text-decoration:none;border:3px solid var(--ink);border-radius:24px;box-shadow:0 6px 0 var(--ink);
-    opacity:0;transition:transform .1s,box-shadow .1s}
-  .show .card{animation:cardin .55s var(--d) cubic-bezier(.2,1.25,.3,1) both}
-  @keyframes cardin{from{opacity:0;transform:translateY(40px) scale(.9) rotate(-2deg)}to{opacity:1;transform:none}}
-  .card:hover{transform:translateY(-3px);box-shadow:0 9px 0 var(--ink)}
-  .card:active{transform:translateY(6px);box-shadow:0 0 0 var(--ink)}
-  .card::after{content:"";position:absolute;top:0;left:-60%;width:40%;height:100%;background:rgba(255,255,255,.45);transform:skewX(-20deg);transition:left .6s}
-  .card:hover::after{left:130%}
-  .ico{flex:none;width:68px;height:68px;border:3px solid var(--ink);border-radius:18px;background:rgba(255,255,255,.55);display:grid;place-items:center}
-  .ico svg{width:46px;height:46px}
-  .name{font-weight:900;font-size:1.3rem;line-height:1.15}
-  .desc{font-size:.95rem;opacity:.75;margin-top:3px}
-  .c1{background:var(--yellow)}.c2{background:var(--sky)}.c3{background:var(--green)}
-  @media (prefers-reduced-motion:reduce){*{animation:none!important}.tile{transform:translateX(var(--x)) rotate(var(--r))}.bar i{width:100%}.card{opacity:1}}
-
-  /* dark theme */
-  body{background-color:#0a0714;background-image:radial-gradient(ellipse at 50% -10%,rgba(122,76,255,.32),transparent 62%),radial-gradient(rgba(255,255,255,.07) 1.5px,transparent 1.5px);
-    background-size:auto,24px 24px;color:#f4f0ff}
-  .shape{opacity:.3;border-color:rgba(255,255,255,.4)}
-  .ghost{color:#f4f0ff}
-  :focus-visible{outline-color:#fff}
-  .t1{--c:#ffd23f}.t2{--c:#5ab8ff}.t3{--c:#7be35a}
-  .tile{background:#171229;border-color:var(--c);box-shadow:0 0 36px -6px var(--c),0 6px 0 rgba(0,0,0,.6)}
-  .sub{opacity:.65}
-  .btn{background:var(--coral);border-color:var(--coral);color:#150f26;box-shadow:0 0 28px -4px var(--coral),0 6px 0 #9c3446}
-  .btn:hover{box-shadow:0 0 40px -2px var(--coral),0 8px 0 #9c3446}
-  .btn:active{box-shadow:0 0 20px -4px var(--coral),0 0 0 #9c3446}
-  .bar{background:#171229;border-color:#4a3d7a}
-  .bar i{background:linear-gradient(90deg,var(--coral),#ffb86b)}
-  .slide:nth-child(1){--c:#ffd23f}.slide:nth-child(2){--c:#5ab8ff}.slide:nth-child(3){--c:#7be35a}
-  .art{background:#171229!important;border-color:var(--c);box-shadow:0 0 54px -8px var(--c),0 8px 0 rgba(0,0,0,.6)}
-  .dots i{background:#2a2145;border-color:#4a3d7a}
-  .dots i.on{background:var(--coral);border-color:var(--coral);box-shadow:0 0 14px var(--coral)}
-  .c1{--c:#ffd23f}.c2{--c:#5ab8ff}.c3{--c:#7be35a}
-  .card{background:linear-gradient(135deg,#1c1535,#130f26);border:2px solid var(--c);color:#f4f0ff;box-shadow:0 0 26px -6px var(--c),0 6px 0 rgba(0,0,0,.55)}
-  .card:hover{box-shadow:0 0 40px -2px var(--c),0 9px 0 rgba(0,0,0,.55)}
-  .card:active{box-shadow:0 0 18px -4px var(--c),0 0 0 rgba(0,0,0,.55)}
-  .card::after{background:rgba(255,255,255,.12)}
-  .ico{border-color:var(--c);background:rgba(255,255,255,.06)}
-  .desc{opacity:.65}
+  h3{font-family:var(--serif);font-weight:400;font-size:clamp(2.1rem,9vw,3rem);margin:0 0 8px;letter-spacing:-.01em}
+  .lead{color:var(--mut);margin:0 0 30px}
+  .options{display:flex;flex-direction:column;gap:14px}
+  .card{display:flex;align-items:center;gap:16px;text-align:left;padding:18px;text-decoration:none;color:var(--ink);
+    background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.02));border:1px solid rgba(255,255,255,.12);
+    border-radius:16px;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);opacity:0;
+    transition:transform .25s,border-color .25s,box-shadow .25s,background .25s}
+  .show .card{animation:cardin .9s var(--d) cubic-bezier(.2,.7,.2,1) both}
+  @keyframes cardin{from{opacity:0;transform:translateY(24px);filter:blur(6px)}to{opacity:1;transform:none;filter:blur(0)}}
+  .card:hover{border-color:var(--amber);transform:translateY(-2px);box-shadow:0 14px 40px -18px rgba(230,181,103,.5);
+    background:linear-gradient(180deg,rgba(255,255,255,.09),rgba(255,255,255,.03))}
+  .card:active{transform:scale(.985)}
+  .ico{flex:none;width:48px;height:48px;border-radius:12px;border:1px solid rgba(255,255,255,.14);display:grid;place-items:center;color:var(--amber)}
+  .ico svg{width:24px;height:24px}
+  .name{font-family:var(--serif);font-size:1.3rem}
+  .desc{font-size:.9rem;color:var(--mut);margin-top:3px}
+  .again{margin-top:26px}
+  @media (prefers-reduced-motion:reduce){*{animation:none!important}.card{opacity:1}.rule{width:120px}}
 </style></head><body>
 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
-  <symbol id="duck" viewBox="0 0 48 48" stroke="#1d1636" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
-    <ellipse cx="22" cy="31" rx="15" ry="10" fill="#fff"/><circle cx="32" cy="17" r="9" fill="#fff"/>
-    <path d="M39 16l8 3-8 4z" fill="#ff8a3d"/><circle cx="34" cy="15" r="1.8" fill="#1d1636" stroke="none"/></symbol>
-  <symbol id="cloud" viewBox="0 0 48 48" stroke="#1d1636" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
-    <path d="M13 37a8 8 0 0 1-1-15.9A11 11 0 0 1 33 18a9.5 9.5 0 0 1 2 19z" fill="#fff"/></symbol>
-  <symbol id="cube" viewBox="0 0 48 48" stroke="#1d1636" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
-    <polygon points="24,6 41,15 24,24 7,15" fill="#fff"/><polygon points="7,15 24,24 24,43 7,34" fill="#d3f2bf"/>
-    <polygon points="41,15 24,24 24,43 41,34" fill="#a8dd8a"/></symbol>
+  <symbol id="i-math" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="5" y="3" width="14" height="18" rx="2.5"/><path d="M8.5 7.5h7M9 12h.01M12 12h.01M15 12h.01M9 16h.01M12 16h.01M15 16h.01"/></symbol>
+  <symbol id="i-game" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M7 8h10a4 4 0 0 1 4 4.2l-.6 4a2.2 2.2 0 0 1-3.8 1.2L15 15.5H9L7.4 17.4a2.2 2.2 0 0 1-3.8-1.2l-.6-4A4 4 0 0 1 7 8z"/><path d="M8.5 10.8v2.4M7.3 12h2.4M15.5 11.4h.01M17.2 12.6h.01"/></symbol>
+  <symbol id="i-learn" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M3 9l9-4.5L21 9l-9 4.5L3 9z"/><path d="M7 11.5V16c0 1.2 2.2 2.5 5 2.5s5-1.3 5-2.5v-4.5M21 9v5"/></symbol>
 </defs></svg>
 
-<div id="bg" aria-hidden="true"></div>
+<div id="bg" aria-hidden="true"><div class="fog f1"></div><div class="fog f2"></div></div>
+<div class="grain" aria-hidden="true"></div>
 
 <div class="cbar t" id="bt"></div><div class="cbar b" id="bb"></div>
 <section id="eye" aria-hidden="true">
@@ -165,90 +116,53 @@ const HOME = `<!DOCTYPE html>
   <button class="ghost" id="skipEye">Skip</button>
 </section>
 
-<section class="layer" id="splash">
+<section class="layer" id="intro">
   <div class="inner">
-    <div class="fan" aria-hidden="true">
-      <div class="tile t1"><svg><use href="#duck"/></svg></div>
-      <div class="tile t3"><svg><use href="#cube"/></svg></div>
-      <div class="tile t2"><svg><use href="#cloud"/></svg></div>
-    </div>
-    <div class="word" id="word" aria-label="Welcome"></div>
-    <p class="sub">Let's find your site.</p>
-    <div class="bar"><i></i></div>
+    <div class="rule"></div>
+    <h1 class="title">Welcome</h1>
+    <div class="tag">Choose your destination</div>
   </div>
-  <button class="ghost skip" id="skip1">Skip</button>
-</section>
-
-<section class="layer hide" id="slides">
-  <button class="ghost skip" id="skip2">Skip</button>
-  <div class="track" id="track">
-    <div class="slide"><div class="art" style="background:var(--yellow)"><svg><use href="#duck"/></svg></div>
-      <h2>Math that sticks</h2><p>Practice and study with DuckMath.</p></div>
-    <div class="slide"><div class="art" style="background:var(--sky)"><svg><use href="#cloud"/></svg></div>
-      <h2>Games on tap</h2><p>Jump into browser games with Cloud Games.</p></div>
-    <div class="slide"><div class="art" style="background:var(--green)"><svg><use href="#cube"/></svg></div>
-      <h2>Build anything</h2><p>Minecraft and more, one tap away.</p></div>
-  </div>
-  <div class="dots" id="dots"><i class="on"></i><i></i><i></i></div>
-  <button class="btn" id="next">Next</button>
+  <button class="ghost skip" id="skip">Skip</button>
 </section>
 
 <section class="layer hide" id="picker">
   <div class="inner">
-    <h3>What site do you want?</h3>
+    <h3>Where to?</h3>
+    <p class="lead">Pick a site to get started.</p>
     <div class="options">
-      <a class="card c1" style="--d:.05s" href="/__go/duckmath"><span class="ico"><svg><use href="#duck"/></svg></span>
+      <a class="card" style="--d:.05s" href="/__go/duckmath"><span class="ico"><svg><use href="#i-math"/></svg></span>
         <span><div class="name">DuckMath</div><div class="desc">Math practice and study tools</div></span></a>
-      <a class="card c2" style="--d:.17s" href="/__go/cloud"><span class="ico"><svg><use href="#cloud"/></svg></span>
+      <a class="card" style="--d:.17s" href="/__go/cloud"><span class="ico"><svg><use href="#i-game"/></svg></span>
         <span><div class="name">Cloud Games</div><div class="desc">Browser games, ready to play</div></span></a>
-      <a class="card c3" style="--d:.29s" href="/__go/mc"><span class="ico"><svg><use href="#cube"/></svg></span>
-        <span><div class="name">Unblocked + Minecraft</div><div class="desc">Minecraft and more</div></span></a>
+      <a class="card" style="--d:.29s" href="/__go/smart"><span class="ico"><svg><use href="#i-learn"/></svg></span>
+        <span><div class="name">Smart Learning</div><div class="desc">Math and learning tools</div></span></a>
     </div>
-    <button class="ghost" id="back" style="margin-top:24px">Replay intro</button>
+    <button class="ghost again" id="again">Replay intro</button>
   </div>
 </section>
 
 <script>
   var $=function(id){return document.getElementById(id)};
-  // floating background shapes
-  [[8,12,46,'#ffd23f','50%',0],[86,8,34,'#7cc8ff','12px',1.2],[12,76,38,'#8fdb6a','12px',.6],[88,72,54,'#ff6b81','50%',1.8],
-   [50,93,26,'#ffd23f','50%',.9],[74,38,22,'#8fdb6a','50%',2.2],[26,32,20,'#7cc8ff','6px',1.5],[60,6,18,'#ff6b81','50%',2.6]]
-  .forEach(function(s){var e=document.createElement('i');e.className='shape';
-    e.style.cssText='left:'+s[0]+'%;top:'+s[1]+'%;width:'+s[2]+'px;height:'+s[2]+'px;background:'+s[3]+';border-radius:'+s[4]+';animation-delay:-'+s[5]+'s';
-    $('bg').appendChild(e)});
-  // letter-by-letter welcome
-  'Welcome'.split('').forEach(function(c,n){var s=document.createElement('span');s.textContent=c;s.style.animationDelay=(.45+n*.07)+'s';$('word').appendChild(s)});
-
-  var layers=['splash','slides','picker'],timer;
+  var layers=['intro','picker'],timer;
   function show(name){
     clearTimeout(timer);
     layers.forEach(function(l){$(l).classList.toggle('hide',l!==name)});
     if(name==='picker'){var p=$('picker');p.classList.remove('show');void p.offsetWidth;p.classList.add('show')}
   }
-  var track=$('track'),dots=$('dots').children,idx=0;
-  track.addEventListener('scroll',function(){
-    idx=Math.round(track.scrollLeft/track.clientWidth);
-    for(var i=0;i<dots.length;i++)dots[i].classList.toggle('on',i===idx);
-    $('next').textContent=idx===dots.length-1?'Choose a site':'Next';
-  });
-  $('next').onclick=function(){
-    if(idx<dots.length-1)track.scrollBy({left:track.clientWidth,behavior:'smooth'});else show('picker');
-  };
-  $('skip1').onclick=$('skip2').onclick=function(){show('picker')};
-  $('back').onclick=function(){var sp=$('splash');sp.classList.remove('live');void sp.offsetWidth;sp.classList.add('live');track.scrollLeft=0;show('splash');timer=setTimeout(function(){show('slides')},3800)};
+  $('skip').onclick=function(){show('picker')};
+  $('again').onclick=function(){var n=$('intro');n.classList.remove('live');void n.offsetWidth;n.classList.add('live');show('intro');timer=setTimeout(function(){show('picker')},5200)};
 
-  // cinematic opening: black screen, eye opens, we fall into the pupil, then the world appears
+  // cinematic opening: black screen, eye opens, we fall into the pupil, then the title appears
   var eye=$('eye'),eyeDone=false,eyeTimer;
+  function bars(){setTimeout(function(){$('bt').classList.add('out');$('bb').classList.add('out')},350)}
   function endEye(){
     if(eyeDone)return;eyeDone=true;clearTimeout(eyeTimer);
-    $('splash').classList.add('live');eye.classList.add('gone');
-    setTimeout(function(){$('bt').classList.add('out');$('bb').classList.add('out')},350);
-    clearTimeout(timer);timer=setTimeout(function(){show('slides')},4200);
+    $('intro').classList.add('live');eye.classList.add('gone');bars();
+    clearTimeout(timer);timer=setTimeout(function(){show('picker')},5200);
   }
   $('skipEye').onclick=eye.onclick=endEye;
-  if(location.hash==='#pick'){
-    eyeDone=true;eye.classList.add('gone');$('bt').classList.add('out');$('bb').classList.add('out');show('picker');
-  }else if(window.matchMedia('(prefers-reduced-motion: reduce)').matches){endEye()}
+  if(location.hash==='#pick'){eyeDone=true;eye.classList.add('gone');$('bt').classList.add('out');$('bb').classList.add('out');show('picker')}
+  else if(window.matchMedia('(prefers-reduced-motion: reduce)').matches){endEye()}
   else{eyeTimer=setTimeout(endEye,6700)}
 </script>
 </body></html>`;
