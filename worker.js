@@ -51,6 +51,7 @@ svg{width:1em;height:1em;display:block}
 .glow{position:absolute;width:80vmax;height:80vmax;border-radius:50%;left:50%;top:-30vmax;transform:translateX(-50%);
  background:radial-gradient(circle,color-mix(in srgb,var(--ac) 28%,transparent),transparent 62%);animation:breathe 9s ease-in-out infinite alternate;pointer-events:none}
 @keyframes breathe{to{transform:translateX(-50%) scale(1.18);opacity:.7}}
+$('gf').oninput=function(){var q=this.value.toLowerCase();document.querySelectorAll('#g-games .tile:not(.add)').forEach(function(t){t.style.display=t.textContent.toLowerCase().indexOf(q)<0?'none':''})};
 /* home */
 #home{display:flex;flex-direction:column;align-items:center;min-height:100%;padding:44px 22px 24px;position:relative;text-align:center}
 .hi{font:italic 500 26px var(--script);color:rgba(255,255,255,.8);margin-top:8px;animation:rise .8s both}
@@ -116,6 +117,17 @@ svg{width:1em;height:1em;display:block}
 @keyframes rp{to{transform:scale(1);opacity:0}}
 #toast{position:fixed;left:50%;bottom:110px;transform:translate(-50%,20px);background:#1b1038;border:1px solid var(--ac);padding:10px 18px;border-radius:99px;opacity:0;transition:.35s;z-index:9;font-weight:600}
 #toast.on{opacity:1;transform:translate(-50%,0)}
+button{touch-action:manipulation}
+#app{transition:transform 1s}#app.flip{transform:rotate(180deg)}
+#gf,#pw{width:100%;height:46px;margin:0 0 14px;border-radius:14px;background:rgba(255,255,255,.06);border:1px solid var(--line);color:var(--ink);padding:0 16px;font:600 16px var(--sans);outline:0}
+#pw{margin:10px 0}#gf:focus,#pw:focus{border-color:var(--ac)}
+.nb.dot::after{content:attr(data-n);position:absolute;top:2px;right:16%;min-width:18px;height:18px;border-radius:9px;background:#ff4d6d;color:#fff;font:700 11px var(--sans);display:grid;place-items:center;padding:0 4px}
+.vis{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0;border-top:1px solid var(--line)}
+.vis small{color:var(--mut);margin-left:8px}.vis span{display:flex;gap:6px}
+.vis button{padding:7px 12px;border-radius:99px;background:rgba(255,255,255,.08);border:1px solid var(--line);font-weight:600;font-size:13px}
+#msg{position:fixed;inset:0;z-index:20;display:none;place-items:center;background:rgba(0,0,0,.7);padding:24px}#msg.on{display:grid}
+#msg .bx{max-width:320px;width:100%;padding:24px;border-radius:22px;background:#12102a;border:1px solid var(--ac);text-align:center;animation:rise .4s both}
+#msg .bx p{font-size:18px;margin:0 0 16px}#msg button{padding:10px 26px;border-radius:99px;background:var(--ac);font-weight:700}
 </style></head><body>
 <div id="app">
  <div id="tabs"><div id="tabList"></div><button id="newTab" data-r aria-label="New tab"></button></div>
@@ -134,7 +146,7 @@ svg{width:1em;height:1em;display:block}
    </div>
    <iframe id="view" title="Page" allow="fullscreen; autoplay; gamepad; clipboard-write"></iframe>
   </section>
-  <section class="page" id="p-games"><div class="pg"><h2>games</h2><p class="sub">Tap a site to open it in the browser.</p><div class="grid" id="g-games"></div></div></section>
+  <section class="page" id="p-games"><div class="pg"><h2>games</h2><p class="sub">Tap a site to open it in the browser.</p><input id="gf" placeholder="Search games..." autocomplete="off"><div class="grid" id="g-games"></div></div></section>
   <section class="page" id="p-music"><div class="pg"><h2>music</h2><p class="sub">Heavy apps may not load through the proxy.</p><div class="grid" id="g-music"></div></div></section>
   <section class="page" id="p-chat"><div class="pg"><h2>chat</h2><p class="sub">Logins can be hit or miss through a proxy.</p><div class="grid" id="g-chat"></div></div></section>
   <section class="page" id="p-noads"><div class="pg"><h2>no ads</h2><p class="sub">Strips common ad scripts from pages you open.</p>
@@ -143,10 +155,12 @@ svg{width:1em;height:1em;display:block}
    <div class="card"><h3>Accent color</h3><div class="dots" id="dots"></div></div>
    <div class="card"><h3>Search engine</h3><div class="seg" id="eng"></div></div>
    <div class="card"><h3>Tab disguise</h3><p>Changes the tab title and icon.</p><div class="seg" id="cloak"></div></div>
-   <div class="card"><h3>Reset</h3><p>Clears saved settings and the current proxy session.</p><button class="danger" id="reset" data-r>Clear everything</button></div></div></section>
+   <div class="card" id="adm"></div>
+   <div class="card"><h3>Reset</h3><p>Clears saved settings and the current proxy session.</p><p style="margin-top:10px">The owner can see how many people are online. No personal info is collected.</p><button class="danger" id="reset" data-r>Clear everything</button></div></div></section>
  </main>
  <nav id="nav"><div id="ind"></div></nav>
 </div>
+<div id="msg"><div class="bx"><div style="font:700 30px var(--script);margin-bottom:6px">message</div><p id="msgT"></p><button id="msgOk">OK</button></div></div>
 <div id="toast"></div>
 <script>
 var $=function(i){return document.getElementById(i)};
@@ -161,7 +175,7 @@ hm:'<path d="M4 11l8-7 8 7v9H4z"/><path d="M10 20v-6h4v6"/>',pl:'<path d="M12 5v
 go:'<path d="M5 12h14M13 6l6 6-6 6"/>',lock:'<rect x="5" y="11" width="14" height="9" rx="2.5"/><path d="M8 11V8a4 4 0 018 0v3"/>',shield:'<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/>'};
 function ic(n){return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">'+P[n]+'</svg>'}
 var S={};try{S=JSON.parse(localStorage.getItem('drift:s')||'{}')}catch(e){}
-S.engine=S.engine||'ddg';S.ac=S.ac||'#8b3fd1';S.cloak=S.cloak||'';S.sites=S.sites||[];
+S.engine=S.engine||'ddg';S.ac=S.ac||'#8b3fd1';S.cloak=S.cloak||'';S.sites=S.sites||[];S.marks=S.marks||[];
 function save(){try{localStorage.setItem('drift:s',JSON.stringify(S))}catch(e){}}
 function toast(m){var t=$('toast');t.textContent=m;t.classList.add('on');clearTimeout(toast.h);toast.h=setTimeout(function(){t.classList.remove('on')},1800)}
 var ENG={ddg:['DuckDuckGo','https://html.duckduckgo.com/html/?q='],bing:['Bing','https://www.bing.com/search?q='],brave:['Brave','https://search.brave.com/search?q='],google:['Google','https://www.google.com/search?q=']};
@@ -179,24 +193,24 @@ document.addEventListener('pointerdown',function(e){var el=e.target.closest('[da
  s.style.cssText='width:'+d+'px;height:'+d+'px;left:'+(e.clientX-r.left-d/2)+'px;top:'+(e.clientY-r.top-d/2)+'px';
  if(getComputedStyle(el).position==='static')el.style.position='relative';el.style.overflow='hidden';el.appendChild(s);setTimeout(function(){s.remove()},650)});
 /* tabs + browsing */
-var tabs=[],cur=null,uid=0;
+var tabs=[],cur=null,uid=0,vt=0;
 function nt(){var t={id:++uid,title:'New Tab',url:'',h:[],i:-1};tabs.push(t);cur=t;draw();showHome()}
-function draw(){var l=$('tabList');l.innerHTML='';tabs.forEach(function(t){var d=document.createElement('div');d.className='tab'+(t===cur?' on':'');
+function draw(){var l=$('tabList'),sg=tabs.map(function(t){return t.id+t.title+t.url}).join('|')+(cur&&cur.id);if(sg!==draw.s){draw.s=sg;l.innerHTML='';tabs.forEach(function(t){var d=document.createElement('div');d.className='tab'+(t===cur?' on':'');
  d.innerHTML='<span class="ti">'+(t.url?host(t.url).charAt(0).toUpperCase():'+')+'</span><span class="tt"></span><button class="tx" aria-label="Close tab">'+ic('x')+'</button>';
  d.querySelector('.tt').textContent=t.title;
- d.onclick=function(e){if(e.target.closest('.tx')){closeTab(t);return}cur=t;draw();t.url?load(t.url):showHome();nav('browser')};l.appendChild(d)});
- $('addr').value=cur&&cur.url?cur.url:'';$('bk').disabled=!cur||cur.i<0;$('fw').disabled=!cur||cur.i>=cur.h.length-1}
+ d.onclick=function(e){if(e.target.closest('.tx')){closeTab(t);return}cur=t;draw();t.url?load(t.url):showHome();nav('browser')};l.appendChild(d)})}
+ if(document.activeElement!==$('addr'))$('addr').value=cur&&cur.url?cur.url:'';$('bk').disabled=!cur||cur.i<0;$('fw').disabled=!cur||cur.i>=cur.h.length-1}
 function closeTab(t){var i=tabs.indexOf(t);tabs.splice(i,1);if(!tabs.length)return nt();if(cur===t){cur=tabs[Math.max(0,i-1)];cur.url?load(cur.url):showHome()}draw()}
-function showHome(){$('stage').classList.remove('browsing');$('view').removeAttribute('src');draw()}
-function load(u){$('stage').classList.add('browsing');$('view').src='/__go?u='+encodeURIComponent(u)}
+function showHome(){vt=0;$('stage').classList.remove('browsing');$('view').src='about:blank';draw()}
+function load(u){vt=cur.id;$('stage').classList.add('browsing');$('view').src='/__go?u='+encodeURIComponent(u)}
 function go(u,fromHist){if(!u)return;nav('browser');if(!fromHist){cur.h=cur.h.slice(0,cur.i+1);cur.h.push(u);cur.i=cur.h.length-1}
  cur.url=u;cur.title=host(u);draw();load(u)}
-window.addEventListener('message',function(e){var d=e.data;if(e.origin!==location.origin||!d||!d.drift||e.source!==$('view').contentWindow||!cur)return;
+window.addEventListener('message',function(e){var d=e.data;if(e.origin!==location.origin||!d||!d.drift||e.source!==$('view').contentWindow||!cur||vt!==cur.id)return;
  if(d.url!==cur.url){cur.url=d.url;if(cur.h[cur.i]!==d.url){cur.h=cur.h.slice(0,cur.i+1);cur.h.push(d.url);cur.i=cur.h.length-1}}
  if(d.title)cur.title=d.title;draw()});
 $('bk').onclick=function(){if(cur.i>0){cur.i--;go(cur.h[cur.i],1)}else if(cur.i===0){cur.i=-1;cur.url='';cur.title='New Tab';showHome()}};
 $('fw').onclick=function(){if(cur.i<cur.h.length-1){cur.i++;go(cur.h[cur.i],1)}};
-$('rl').onclick=function(){var b=$('rl').firstChild;b.style.transition='transform .6s';b.style.transform='rotate(360deg)';setTimeout(function(){b.style.transition='none';b.style.transform=''},650);if(cur.url)load(cur.url)};
+$('rl').onclick=function(){var b=$('rl').firstChild;b.style.transition='transform .6s';b.style.transform='rotate(360deg)';setTimeout(function(){b.style.transition='none';b.style.transform=''},650);if(cur.url)load(cur.url);else{clock();toast('Refreshed')}};
 $('hm').onclick=function(){cur.url='';cur.title='New Tab';cur.i=-1;cur.h=[];showHome();nav('browser')};
 $('newTab').onclick=function(){nt();nav('browser')};
 $('addrForm').onsubmit=function(e){e.preventDefault();var u=toUrl($('addr').value);$('addr').blur();go(u)};
@@ -217,8 +231,9 @@ function drawGames(){tiles('g-games',GAMES.concat(S.sites),function(g){var a=doc
 function ord(n){var s=['th','st','nd','rd'],v=n%100;return n+(s[(v-20)%10]||s[v]||s[0])}
 function clock(){var d=new Date(),h=d.getHours();$('hi').textContent='good '+(h<5?'night':h<12?'morning':h<18?'afternoon':'evening');
  $('date').textContent=d.toLocaleDateString('en-US',{weekday:'long'})+', '+d.toLocaleDateString('en-US',{month:'long'})+' '+ord(d.getDate())+', '+d.getFullYear()}
-function shortcuts(){var c=$('sc');SC.forEach(function(x,k){var s=document.createElement('button');s.className='s';s.style.animationDelay=.3+k*.08+'s';
- s.innerHTML='<span class="c"><img alt="" src="'+fav(x[1])+'"></span><b>'+x[0]+'</b>';s.querySelector('img').onerror=function(){this.remove()};s.onclick=function(){go(x[1])};c.appendChild(s)})}
+function shortcuts(){var c=$('sc');c.innerHTML='';SC.concat(S.marks).forEach(function(x,k){var s=document.createElement('button');s.className='s';s.style.animationDelay=.3+k*.08+'s';
+ s.innerHTML='<span class="c"><img alt="" src="'+fav(x[1])+'"></span><b>'+x[0]+'</b>';s.querySelector('img').onerror=function(){this.remove()};s.onclick=function(){go(x[1])};c.appendChild(s)});var a=document.createElement('button');a.className='s';a.innerHTML='<span class="c">'+ic('pl')+'</span><b>add</b>';a.querySelector('.c').style.fontSize='34px';
+ a.onclick=function(){var n=prompt('Shortcut name');if(!n)return;var u=prompt('Address (https://...)');if(!u)return;if(!/^https?:/i.test(u))u='https://'+u;S.marks.push([n,u]);save();shortcuts();toast('Added '+n)};c.appendChild(a)}
 /* no ads */
 function ads(){return /(?:^|;\\s*)noads=1/.test(document.cookie)}
 function drawAds(){var on=ads();$('adSw').classList.toggle('on',on);$('adIc').innerHTML=ic(on?'shield':'ban');$('adIc').classList.toggle('off',!on);
@@ -237,15 +252,62 @@ function drawSettings(){var d=$('dots');d.innerHTML='';['#8b3fd1','#3f7bd1','#1f
  var k2=$('cloak');k2.innerHTML='';Object.keys(CK).forEach(function(k){var b=document.createElement('button');b.textContent=CK[k][0];b.className=S.cloak===k?'on':'';
   b.onclick=function(){S.cloak=k;save();cloak();drawSettings()};k2.appendChild(b)})}
 $('reset').onclick=function(){if(!confirm('Clear all saved settings?'))return;try{localStorage.removeItem('drift:s')}catch(e){}document.cookie='t=;Max-Age=0;Path=/';document.cookie='noads=;Max-Age=0;Path=/';location.reload()};
+/* presence + admin */
+var vid;try{vid=localStorage.getItem('drift:id');if(!vid){vid=Math.random().toString(36).slice(2,10);localStorage.setItem('drift:id',vid)}}catch(e){vid=Math.random().toString(36).slice(2,10)}
+function isAdm(){return /(?:^|;\s*)adm=/.test(document.cookie)}
+function runCmd(c){if(c.type==='home')$('hm').onclick();else if(c.type==='msg'){$('msgT').textContent=c.text||'';$('msg').classList.add('on')}
+ else if(c.type==='flip'){$('app').classList.add('flip');setTimeout(function(){$('app').classList.remove('flip')},8000)}}
+function ping(){fetch('/__p/ping',{method:'POST',body:JSON.stringify({id:vid,status:cur&&cur.url?'browsing':'home'})}).then(function(r){return r.json()}).then(function(d){if(d&&d.cmd)runCmd(d.cmd)}).catch(function(){})}
+$('msgOk').onclick=function(){$('msg').classList.remove('on')};
+var known=null,vis=[];
+function poll(){if(!isAdm())return;fetch('/__p/list').then(function(r){return r.json()}).then(function(d){vis=d.list||[];
+ if(known)vis.forEach(function(v){if(known.indexOf(v.id)<0)toast('Someone joined \u00b7 '+vis.length+' online')});
+ known=vis.map(function(v){return v.id});var b=document.querySelector('.nb[data-p=settings]');b.classList.toggle('dot',vis.length>0);b.dataset.n=vis.length;drawAdmin()}).catch(function(){})}
+function send(id,type,text){fetch('/__p/cmd',{method:'POST',body:JSON.stringify({id:id,type:type,text:text})}).then(function(){toast('Sent')})}
+function drawAdmin(){var a=$('adm');
+ if(!isAdm()){a.innerHTML='<h3>Admin</h3><p>Enter the password to manage visitors.</p><input id="pw" type="password" inputmode="numeric" placeholder="Password"><button class="danger" id="pwGo" style="margin:0">Unlock</button><p id="pwE" style="margin-top:8px"></p>';
+  $('pwGo').onclick=function(){fetch('/__admin',{method:'POST',body:JSON.stringify({pw:$('pw').value})}).then(function(r){if(r.ok){toast('Admin unlocked');known=null;poll();drawAdmin()}else $('pwE').textContent='Wrong password'})};return}
+ var h='<h3>Admin panel</h3><p>'+vis.length+' other '+(vis.length===1?'person':'people')+' online</p>';
+ vis.forEach(function(v){h+='<div class="vis"><div><b>Visitor '+v.n+'</b><small>'+v.status+'</small></div><span><button data-a="home" data-i="'+v.id+'">Home</button><button data-a="msg" data-i="'+v.id+'">Message</button><button data-a="flip" data-i="'+v.id+'">Flip</button></span></div>'});
+ a.innerHTML=h+'<button class="danger" id="adOff">Log out</button>';
+ a.querySelectorAll('[data-a]').forEach(function(b){b.onclick=function(){var t=b.dataset.a,x='';if(t==='msg'){x=prompt('Message to send');if(!x)return}send(b.dataset.i,t,x)}});
+ $('adOff').onclick=function(){fetch('/__admin/off').then(function(){known=null;vis=[];drawAdmin()})}}
+setInterval(ping,3000);setInterval(poll,3000);
 /* boot */
 [['newTab','pl'],['bk','bk'],['fw','fw'],['rl','rl'],['hm','hm'],['sg','go']].forEach(function(x){$(x[0]).innerHTML=ic(x[1])});
-accent(S.ac);cloak();clock();setInterval(clock,60000);shortcuts();drawGames();tiles('g-music',MUSIC);tiles('g-chat',CHAT);drawAds();drawSettings();nt();
+accent(S.ac);cloak();clock();setInterval(clock,60000);shortcuts();drawGames();tiles('g-music',MUSIC);tiles('g-chat',CHAT);drawAds();drawSettings();drawAdmin();ping();poll();nt();
 window.addEventListener('resize',function(){var a=document.querySelector('.nb.on');if(a)nav(a.dataset.p)});
 setTimeout(function(){nav('browser')},60);
 </script></body></html>`;
 
-export default {
+const ADMIN_PW = '1414';
+async function adminToken() {
+  const d = await crypto.subtle.digest('SHA-256', new TextEncoder().encode('drift-admin:' + ADMIN_PW));
+  return [...new Uint8Array(d)].map((b) => b.toString(16).padStart(2, '0')).join('');
+}
+const J = (o, st) => new Response(JSON.stringify(o), { status: st || 200, headers: { 'content-type': 'application/json' } });
+
+export class Room {
+  constructor() { this.v = new Map(); this.c = 0; }
   async fetch(req) {
+    const p = new URL(req.url).pathname, now = Date.now();
+    for (const [k, x] of this.v) if (now - x.t > 20000) this.v.delete(k);
+    const b = req.method === 'POST' ? await req.json().catch(() => ({})) : {};
+    if (p === '/ping') {
+      let x = this.v.get(b.id);
+      if (!x) { x = { id: b.id, n: ++this.c, cmd: null }; this.v.set(b.id, x); }
+      x.t = now; x.status = b.status; x.admin = !!b.admin;
+      const cmd = x.cmd; x.cmd = null;
+      return J({ cmd });
+    }
+    if (p === '/list') return J({ list: [...this.v.values()].filter((x) => !x.admin).map((x) => ({ id: x.id, n: x.n, status: x.status })) });
+    if (p === '/cmd') { const x = this.v.get(b.id); if (x) x.cmd = { type: b.type, text: String(b.text || '').slice(0, 200) }; return J({ ok: !!x }); }
+    return J({}, 404);
+  }
+}
+
+export default {
+  async fetch(req, env) {
     const url = new URL(req.url);
     const path = url.pathname;
     const ck = req.headers.get('cookie') || '';
@@ -258,6 +320,24 @@ export default {
       try { u = new URL(url.searchParams.get('u')); } catch (e) { return new Response('Bad address', { status: 400 }); }
       if (!/^https?:$/.test(u.protocol) || BLOCK.test(u.hostname) || u.host === url.host) return new Response('Blocked address', { status: 400 });
       return new Response(null, { status: 302, headers: { location: u.pathname + u.search, 'set-cookie': cookie('t', encodeURIComponent(u.origin), 86400) } });
+    }
+    const tok = await adminToken();
+    const isAdmin = ck.split(/;\s*/).includes('adm=' + tok);
+    if (path === '/__admin' && req.method === 'POST') {
+      let pw = '';
+      try { pw = (await req.json()).pw; } catch (e) {}
+      if (String(pw) !== ADMIN_PW) return J({ ok: false }, 401);
+      return new Response('{"ok":true}', { headers: { 'content-type': 'application/json', 'set-cookie': cookie('adm', tok, 31536000) } });
+    }
+    if (path === '/__admin/off') return new Response(null, { status: 204, headers: { 'set-cookie': cookie('adm', '', 0) } });
+    if (path.startsWith('/__p/')) {
+      if (!env.ROOM) return J({ cmd: null, list: [] });
+      const room = env.ROOM.get(env.ROOM.idFromName('main'));
+      const kind = path.slice(5);
+      if (kind !== 'ping' && !isAdmin) return J({ error: 'no' }, 403);
+      let body = req.method === 'POST' ? await req.json().catch(() => ({})) : {};
+      if (kind === 'ping') body.admin = isAdmin;
+      return room.fetch('https://room/' + kind, { method: 'POST', body: JSON.stringify(body) });
     }
     if (path.startsWith('/__noads/')) {
       return new Response(null, { status: 204, headers: { 'set-cookie': cookie('noads', path.endsWith('1') ? '1' : '0', 31536000) } });
@@ -282,7 +362,7 @@ export default {
     const headers = new Headers(req.headers);
     headers.set('Referer', t + '/');
     if (headers.has('Origin')) headers.set('Origin', t);
-    const rest = ck.split(/;\s*/).filter((c) => c && !/^(t|noads)=/.test(c)).join('; ');
+    const rest = ck.split(/;\s*/).filter((c) => c && !/^(t|noads|adm)=/.test(c)).join('; ');
     if (rest) headers.set('cookie', rest); else headers.delete('cookie');
     const body = ['GET', 'HEAD'].includes(req.method) ? undefined : req.body;
     if (req.headers.get('upgrade') === 'websocket') return fetch(t + path + url.search, req);
