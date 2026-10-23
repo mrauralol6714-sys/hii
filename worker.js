@@ -82,6 +82,22 @@ const HOME = `<!DOCTYPE html>
   .desc{font-size:.9rem;color:var(--mut);margin-top:3px}
   .secret{border-style:dashed;border-color:rgba(230,181,103,.35)}
   .again{margin-top:26px}
+  /* admin shell */
+  #frames{position:fixed;inset:0;z-index:6;background:#000;visibility:hidden}
+  #frames.on{visibility:visible}
+  #frames iframe{position:absolute;inset:0;width:100%;height:100%;border:0;background:#fff;display:none}
+  #home{position:fixed;left:10px;bottom:calc(10px + env(safe-area-inset-bottom,0px));z-index:7;display:none;font:600 13px var(--sans);
+    letter-spacing:.08em;color:var(--ink);background:rgba(7,9,13,.82);border:1px solid var(--amber);border-radius:999px;padding:9px 16px;cursor:pointer}
+  #home.on{display:block}
+  #modal{position:fixed;inset:0;z-index:8;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.72);padding:24px}
+  #modal.on{display:flex}
+  .box{width:100%;max-width:320px;background:#10141b;border:1px solid rgba(255,255,255,.14);border-radius:18px;padding:24px;text-align:center}
+  .mt{font-family:var(--serif);font-size:1.5rem;margin-bottom:14px}
+  #pw{width:100%;font:inherit;font-size:1.1rem;text-align:center;letter-spacing:.3em;color:var(--ink);background:rgba(255,255,255,.06);
+    border:1px solid rgba(255,255,255,.16);border-radius:12px;padding:12px;margin-bottom:12px}
+  .mbtn{font:inherit;font-weight:600;color:#0b0d12;background:var(--amber);border:0;border-radius:12px;padding:11px 20px;cursor:pointer;margin:0 4px}
+  .mbtn.alt{background:none;color:var(--ink);border:1px solid rgba(255,255,255,.2)}
+  #pwErr{min-height:1.2em;margin-top:12px;color:#ff8a8a;font-size:.9rem}
   @media (prefers-reduced-motion:reduce){*{animation:none!important}.card{opacity:1}.rule{width:120px}}
 </style></head><body>
 
@@ -140,9 +156,16 @@ const HOME = `<!DOCTYPE html>
       <a class="card secret" style="--d:.29s" href="/__go/secret"><span class="ico"><svg><use href="#i-lock"/></svg></span>
         <span><div class="name">Secret</div><div class="desc">Shh. Tap to find out.</div></span></a>
     </div>
-    <button class="ghost again" id="again">Replay intro</button>
+    <button class="ghost again" id="again">Replay intro</button><button class="ghost again" id="adminBtn">Admin</button>
   </div>
 </section>
+
+<div id="frames"></div>
+<button id="home">Menu</button>
+<div id="modal"><div class="box"><div class="mt">Admin</div>
+  <input id="pw" type="password" inputmode="numeric" placeholder="Password" autocomplete="off">
+  <div><button class="mbtn" id="pwGo">Unlock</button><button class="mbtn alt" id="pwCancel">Cancel</button></div>
+  <div id="pwErr"></div></div></div>
 
 <script>
   var $=function(id){return document.getElementById(id)};
@@ -167,8 +190,51 @@ const HOME = `<!DOCTYPE html>
   if(location.hash==='#pick'){eyeDone=true;eye.classList.add('gone');$('bt').classList.add('out');$('bb').classList.add('out');show('picker')}
   else if(window.matchMedia('(prefers-reduced-motion: reduce)').matches){endEye()}
   else{eyeTimer=setTimeout(endEye,6700)}
+
+  // admin: sites stay open in the background so you come back to the same spot
+  var ADMIN=__ADMIN__;
+  var frames={};
+  function openSite(key){
+    fetch('/__set/'+key,{credentials:'same-origin'}).then(function(){
+      var f=frames[key];
+      if(!f){
+        var r='';try{r=localStorage.getItem('__resume_'+key)||''}catch(e){}
+        if(r.charAt(0)!=='/'||r.indexOf('/__')===0)r='/';
+        f=document.createElement('iframe');f.src=r;f.title=key;
+        f.setAttribute('allow','fullscreen; autoplay; gamepad; clipboard-write');
+        $('frames').appendChild(f);frames[key]=f;
+      }
+      Object.keys(frames).forEach(function(k){frames[k].style.display=(k===key)?'block':'none'});
+      $('frames').classList.add('on');$('home').classList.add('on');
+    });
+  }
+  if(ADMIN){
+    document.querySelectorAll('.card').forEach(function(a){
+      a.addEventListener('click',function(e){e.preventDefault();openSite(a.getAttribute('href').split('/').pop())});
+    });
+    $('home').onclick=function(){$('frames').classList.remove('on');$('home').classList.remove('on');show('picker')};
+    document.querySelector('.lead').textContent='Admin mode: your sites stay open in the background.';
+    $('adminBtn').textContent='Log out';
+    $('adminBtn').onclick=function(){location.href='/__admin/off'};
+  }else{
+    $('adminBtn').onclick=function(){$('modal').classList.add('on');setTimeout(function(){$('pw').focus()},50)};
+  }
+  $('pwCancel').onclick=function(){$('modal').classList.remove('on')};
+  function tryPw(){
+    fetch('/__admin',{method:'POST',body:JSON.stringify({pw:$('pw').value})}).then(function(r){
+      if(r.ok){location.hash='#pick';location.reload()}else{$('pwErr').textContent='Wrong password'}
+    }).catch(function(){$('pwErr').textContent='Something went wrong'});
+  }
+  $('pwGo').onclick=tryPw;
+  $('pw').addEventListener('keydown',function(e){if(e.key==='Enter')tryPw()});
 </script>
 </body></html>`;
+
+const ADMIN_PW = '1414';
+async function adminToken() {
+  const d = await crypto.subtle.digest('SHA-256', new TextEncoder().encode('dm-admin:' + ADMIN_PW));
+  return [...new Uint8Array(d)].map((b) => b.toString(16).padStart(2, '0')).join('');
+}
 
 const DEBUG_JS = String.raw`(function(){
 if(window.__dbg)return;window.__dbg=1;
@@ -202,14 +268,48 @@ export default {
     const url = new URL(request.url);
     const path = url.pathname;
 
+    const rawCookie = request.headers.get('cookie') || '';
+    const tok = await adminToken();
+    const isAdmin = rawCookie.split(/;\s*/).includes('adm=' + tok);
+    const page = (extra) =>
+      new Response(HOME.replace('__ADMIN__', isAdmin ? 'true' : 'false'), {
+        headers: Object.assign({ 'content-type': 'text/html;charset=utf-8' }, extra || {}),
+      });
+
     // Menu page (also forgets the chosen site).
     if (path === '/__menu') {
-      return new Response(HOME, {
-        headers: {
-          'content-type': 'text/html;charset=utf-8',
-          'set-cookie': 'site=; Path=/; Max-Age=0; Secure; SameSite=Lax',
-          'clear-site-data': '"cache"',
-        },
+      return page({
+        'set-cookie': 'site=; Path=/; Max-Age=0; Secure; SameSite=Lax',
+        'clear-site-data': '"cache"',
+      });
+    }
+    // Admin login / logout.
+    if (path === '/__admin' && request.method === 'POST') {
+      let pw = '';
+      try { pw = (await request.json()).pw; } catch (e) {}
+      if (String(pw) === ADMIN_PW) {
+        return new Response('{"ok":true}', {
+          headers: {
+            'content-type': 'application/json',
+            'set-cookie': 'adm=' + tok + '; Path=/; Max-Age=31536000; Secure; SameSite=Lax',
+          },
+        });
+      }
+      return new Response('{"ok":false}', { status: 401, headers: { 'content-type': 'application/json' } });
+    }
+    if (path === '/__admin/off') {
+      return new Response(null, {
+        status: 302,
+        headers: { location: '/__menu#pick', 'set-cookie': 'adm=; Path=/; Max-Age=0; Secure; SameSite=Lax' },
+      });
+    }
+    // Quietly switch which site the proxy points at (used by the admin shell).
+    if (path.startsWith('/__set/')) {
+      const k = path.slice(7);
+      if (!SITES[k]) return new Response('Not found', { status: 404 });
+      return new Response(null, {
+        status: 204,
+        headers: { 'set-cookie': 'site=' + k + '; Path=/; Max-Age=31536000; Secure; SameSite=Lax' },
       });
     }
     if (path === '/__debug' || path === '/__debug/off') {
@@ -236,11 +336,10 @@ export default {
       });
     }
 
-    const rawCookie = request.headers.get('cookie') || '';
     const key = (rawCookie.match(/(?:^|;\s*)site=([a-z]+)/) || [])[1];
     const origin = SITES[key];
     if (!origin) {
-      return new Response(HOME, { headers: { 'content-type': 'text/html;charset=utf-8' } });
+      return page();
     }
 
     const dbg = /(?:^|;\s*)dbg=1/.test(rawCookie);
@@ -260,7 +359,7 @@ export default {
     const headers = new Headers(request.headers);
     headers.set('Referer', origin + '/');
     if (headers.has('Origin')) headers.set('Origin', origin);
-    const cookie = rawCookie.split(/;\s*/).filter((c) => c && !c.startsWith('site=') && !c.startsWith('dbg=')).join('; ');
+    const cookie = rawCookie.split(/;\s*/).filter((c) => c && !c.startsWith('site=') && !c.startsWith('dbg=') && !c.startsWith('adm=')).join('; ');
     if (cookie) headers.set('cookie', cookie); else headers.delete('cookie');
     const hasBody = !['GET', 'HEAD'].includes(request.method);
     const upstream = await fetch(target, {
@@ -300,6 +399,7 @@ export default {
         'function pp(C,p){try{var d=Object.getOwnPropertyDescriptor(C.prototype,p);if(!d||!d.set)return;Object.defineProperty(C.prototype,p,{get:d.get,set:function(v){d.set.call(this,f(v))},configurable:true,enumerable:d.enumerable})}catch(e){}}' +
         '[[HTMLIFrameElement,"src"],[HTMLScriptElement,"src"],[HTMLImageElement,"src"],[HTMLLinkElement,"href"],[HTMLAnchorElement,"href"],[HTMLSourceElement,"src"],[HTMLMediaElement,"src"],[HTMLEmbedElement,"src"]].forEach(function(x){pp(x[0],x[1])});' +
         'var sa=Element.prototype.setAttribute;Element.prototype.setAttribute=function(n,v){if(typeof v==="string"&&/^(src|href|action|data-src|poster)$/i.test(n))v=f(v);return sa.call(this,n,v)};' +
+        'if(' + JSON.stringify(isAdmin) + '&&window.parent===window.top&&window.top!==window){var K="__resume_' + key + '";setInterval(function(){try{var p=location.pathname+location.search+location.hash;if(p.indexOf("/__")!==0)localStorage.setItem(K,p)}catch(e){}},1000)}' +
         'if(navigator.serviceWorker){navigator.serviceWorker.register=function(){return Promise.resolve({})}}' +
         'function mk(){if(document.getElementById("__menu")||!document.documentElement)return;var a=document.createElement("a");a.id="__menu";a.href="/__menu#pick";a.textContent="Menu";' +
         'a.style.cssText="position:fixed!important;left:10px!important;bottom:calc(10px + env(safe-area-inset-bottom,0px))!important;z-index:2147483647!important;display:block!important;visibility:visible!important;opacity:.9!important;pointer-events:auto!important;background:#ff6b81;color:#1d1636;border:2px solid #1d1636;font:800 13px system-ui,sans-serif;padding:8px 14px;border-radius:999px;text-decoration:none;margin:0;width:auto;height:auto";' +
