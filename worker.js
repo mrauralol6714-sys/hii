@@ -316,6 +316,10 @@ export default {
     const dest = req.headers.get('sec-fetch-dest');
     const cookie = (n, v, age) => n + '=' + v + '; Path=/; Max-Age=' + age + '; Secure; SameSite=Lax';
 
+    if (path === '/cine' || path.startsWith('/cine/')) {
+      if (env.ASSETS) { const r = await env.ASSETS.fetch(req); if (r.status !== 404) return r; }
+      return new Response('<body style="margin:0;display:grid;place-items:center;min-height:100vh;background:#050505;color:#eee;font:16px system-ui;text-align:center;padding:24px"><div><h2>Fun games files not found</h2><p>Add <b>public/cine/index.html</b> and <b>public/cine/random/gamelayout.js</b> to your GitHub repo, then wait for the redeploy.</p></div></body>', { status: 404, headers: { 'content-type': 'text/html;charset=utf-8' } });
+    }
     if (path === '/__go') {
       let u;
       try { u = new URL(url.searchParams.get('u')); } catch (e) { return new Response('Bad address', { status: 400 }); }
