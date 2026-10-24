@@ -318,6 +318,19 @@ export default {
 
     if (path === '/cine' || path.startsWith('/cine/')) {
       if (env.ASSETS) { const r = await env.ASSETS.fetch(req); if (r.status !== 404) return r; }
+      // Fallback: pull the files straight from the public Cine-Cloud repo (your own uploaded files win if present).
+      const rel = decodeURIComponent(path.replace(/^\/cine\/?/, '')) || 'index.html';
+      if (!rel.includes('..')) {
+        const cdn = await fetch('https://cdn.jsdelivr.net/gh/codiesnutkiss-sudo/Cine-Cloud-SRC@main/src/' + rel.split('/').map(encodeURIComponent).join('/'));
+        if (cdn.ok) {
+          const types = { html: 'text/html;charset=utf-8', js: 'text/javascript;charset=utf-8', css: 'text/css;charset=utf-8', json: 'application/json', mp4: 'video/mp4', mp3: 'audio/mpeg', svg: 'image/svg+xml' };
+          const h = new Headers(cdn.headers);
+          ['content-security-policy', 'x-frame-options', 'cross-origin-resource-policy'].forEach((k) => h.delete(k));
+          const ext = rel.split('.').pop().toLowerCase();
+          if (types[ext]) h.set('content-type', types[ext]);
+          return new Response(cdn.body, { status: 200, headers: h });
+        }
+      }
       return new Response('<body style="margin:0;display:grid;place-items:center;min-height:100vh;background:#050505;color:#eee;font:16px system-ui;text-align:center;padding:24px"><div><h2>Fun games files not found</h2><p>Add <b>public/cine/index.html</b> and <b>public/cine/random/gamelayout.js</b> to your GitHub repo, then wait for the redeploy.</p></div></body>', { status: 404, headers: { 'content-type': 'text/html;charset=utf-8' } });
     }
     if (path === '/__go') {
