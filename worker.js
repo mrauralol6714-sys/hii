@@ -109,7 +109,7 @@ $('gf').oninput=function(){var q=this.value.toLowerCase();document.querySelector
 #ind{position:absolute;top:8px;height:calc(100% - 16px - env(safe-area-inset-bottom));border-radius:18px;background:rgba(139,63,209,.28);transition:left .4s cubic-bezier(.3,1.3,.5,1),width .3s;pointer-events:none}
 .nb{position:relative;z-index:1;flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 2px;color:#b7a5ee;overflow:hidden;border-radius:16px;transition:color .25s,transform .15s}
 .nb svg{font-size:30px;transition:transform .35s cubic-bezier(.3,1.6,.5,1)}
-.nb span{font:italic 500 19px var(--script)}
+.nb span{font:italic 500 17px var(--script)}
 .nb.on{color:#d7bfff}.nb.on svg{transform:translateY(-2px) scale(1.12)}
 .nb:active{transform:scale(.9)}
 .nb.gold{color:#f4c14c}
@@ -147,6 +147,7 @@ button{touch-action:manipulation}
    <iframe id="view" title="Page" allow="fullscreen; autoplay; gamepad; clipboard-write"></iframe>
   </section>
   <section class="page" id="p-games"><div class="pg"><h2>games</h2><p class="sub">Tap a site to open it in the browser.</p><input id="gf" placeholder="Search games..." autocomplete="off"><div class="grid" id="g-games"></div></div></section>
+  <section class="page" id="p-fun"><iframe id="funf" title="Fun games" allow="fullscreen; autoplay; gamepad; clipboard-write" style="position:absolute;inset:0;width:100%;height:100%;border:0;background:#050505"></iframe></section>
   <section class="page" id="p-music"><div class="pg"><h2>music</h2><p class="sub">Heavy apps may not load through the proxy.</p><div class="grid" id="g-music"></div></div></section>
   <section class="page" id="p-chat"><div class="pg"><h2>chat</h2><p class="sub">Logins can be hit or miss through a proxy.</p><div class="grid" id="g-chat"></div></div></section>
   <section class="page" id="p-noads"><div class="pg"><h2>no ads</h2><p class="sub">Strips common ad scripts from pages you open.</p>
@@ -170,7 +171,7 @@ music:'<path d="M9 18V5l11-2v13"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="
 chat:'<path d="M21 12a8 8 0 01-11.6 7.1L4 20l1.1-4.2A8 8 0 1121 12z"/><path d="M8.5 11h7M8.5 14h4"/>',
 ban:'<circle cx="12" cy="12" r="9"/><path d="M5.6 5.6l12.8 12.8"/>',
 gear:'<circle cx="12" cy="12" r="3.2"/><circle cx="12" cy="12" r="7.5"/><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M5 5l1.8 1.8M17.2 17.2L19 19M19 5l-1.8 1.8M6.8 17.2L5 19"/>',
-bk:'<path d="M19 12H5M11 6l-6 6 6 6"/>',fw:'<path d="M5 12h14M13 6l6 6-6 6"/>',rl:'<path d="M20 11a8 8 0 10-2.3 5.7M20 4v7h-7"/>',
+star:'<path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"/>',bk:'<path d="M19 12H5M11 6l-6 6 6 6"/>',fw:'<path d="M5 12h14M13 6l6 6-6 6"/>',rl:'<path d="M20 11a8 8 0 10-2.3 5.7M20 4v7h-7"/>',
 hm:'<path d="M4 11l8-7 8 7v9H4z"/><path d="M10 20v-6h4v6"/>',pl:'<path d="M12 5v14M5 12h14"/>',x:'<path d="M6 6l12 12M18 6L6 18"/>',
 go:'<path d="M5 12h14M13 6l6 6-6 6"/>',lock:'<rect x="5" y="11" width="14" height="9" rx="2.5"/><path d="M8 11V8a4 4 0 018 0v3"/>',shield:'<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/>'};
 function ic(n){return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">'+P[n]+'</svg>'}
@@ -216,10 +217,10 @@ $('newTab').onclick=function(){nt();nav('browser')};
 $('addrForm').onsubmit=function(e){e.preventDefault();var u=toUrl($('addr').value);$('addr').blur();go(u)};
 $('sf').onsubmit=function(e){e.preventDefault();var u=toUrl($('sq').value);$('sq').blur();$('sq').value='';go(u)};
 /* pages */
-var PAGES=[['browser','globe','browser'],['games','game','games'],['music','music','music'],['chat','chat','chat'],['noads','ban','no ads'],['settings','gear','settings']];
+var PAGES=[['browser','globe','browser'],['games','game','games'],['fun','star','fun'],['music','music','music'],['chat','chat','chat'],['noads','ban','no ads'],['settings','gear','settings']];
 PAGES.forEach(function(p){var b=document.createElement('button');b.className='nb'+(p[0]==='noads'?' gold':'');b.dataset.p=p[0];b.innerHTML=ic(p[1])+'<span>'+p[2]+'</span>';
  b.onclick=function(){nav(p[0])};$('nav').appendChild(b)});
-function nav(n){document.querySelectorAll('.page').forEach(function(p){p.classList.toggle('on',p.id==='p-'+n)});
+function nav(n){if(n==='fun'&&!$('funf').getAttribute('src'))$('funf').src='/cine/';document.querySelectorAll('.page').forEach(function(p){p.classList.toggle('on',p.id==='p-'+n)});
  document.querySelectorAll('.nb').forEach(function(b){var on=b.dataset.p===n;b.classList.toggle('on',on);if(on){var i=$('ind');i.style.left=b.offsetLeft+4+'px';i.style.width=b.offsetWidth-8+'px'}})}
 function tiles(id,list,extra){var g=$(id);g.innerHTML='';list.forEach(function(x,k){var t=document.createElement('button');t.className='tile';t.style.animationDelay=k*60+'ms';
  t.innerHTML='<span class="fi"><img alt="" src="'+fav(x[1])+'"></span><b></b><small></small>';t.querySelector('b').textContent=x[0];
