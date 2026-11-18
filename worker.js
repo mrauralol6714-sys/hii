@@ -239,6 +239,10 @@ textarea.inp{height:150px;padding:12px 16px;resize:vertical;font-weight:500}
   <section class="page" id="p-saved"><div class="pg"><h2>saved</h2><p class="sub">Your bookmarks and recent history.</p>
    <div class="card"><h3>Bookmarks</h3><div id="bmList"></div></div>
    <div class="card"><div class="row"><h3>History</h3><button class="seg" id="hClr" style="margin:0"><span style="padding:6px 14px;border-radius:99px;border:1px solid var(--line);font-size:13px;font-weight:600">Clear</span></button></div><div id="hList"></div></div></div></section>
+  <section class="page" id="p-ideas"><div class="pg"><h2>ideas</h2><p class="sub">Request an update or report a bug. It is sent anonymously.</p>
+   <form class="card" id="sgF"><h3>What should we add?</h3><div class="seg" id="sgc"></div>
+    <textarea class="inp" id="sgT" maxlength="500" placeholder="Describe your idea..."></textarea>
+    <div class="row" style="margin-top:12px"><span id="sgN" style="color:var(--mut);font-size:13px">0/500</span><div class="seg" style="margin:0"><button class="on" id="sgB" type="submit">Send</button></div></div></form></div></section>
   <section class="page" id="p-noads"><div class="pg"><h2>no ads</h2><p class="sub">Strips common ad scripts from pages you open.</p>
    <div class="card" style="text-align:center"><div class="big" id="adIc"></div><div class="row"><div style="text-align:left"><h3 id="adT">Ad blocker</h3><p id="adP"></p></div><button class="sw" id="adSw" aria-label="Toggle"></button></div></div></div></section>
   <section class="page" id="p-settings"><div class="pg"><h2>settings</h2><p class="sub">Saved on this device.</p>
@@ -283,7 +287,7 @@ star:'<path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.
 hm:'<path d="M4 11l8-7 8 7v9H4z"/><path d="M10 20v-6h4v6"/>',pl:'<path d="M12 5v14M5 12h14"/>',x:'<path d="M6 6l12 12M18 6L6 18"/>',
 go:'<path d="M5 12h14M13 6l6 6-6 6"/>',lock:'<rect x="5" y="11" width="14" height="9" rx="2.5"/><path d="M8 11V8a4 4 0 018 0v3"/>',shield:'<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/>',
 tools:'<path d="M14.7 6.3a4 4 0 00-5.4 5.2L3.5 17.3a1.5 1.5 0 002.1 2.1l5.8-5.8a4 4 0 005.2-5.4l-2.4 2.4-2.1-.6-.6-2.1z"/>',
-bmk:'<path d="M6 4h12v17l-6-4-6 4z"/>'};
+bmk:'<path d="M6 4h12v17l-6-4-6 4z"/>',bulb:'<path d="M9 18h6M10 21h4M12 3a6 6 0 00-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0012 3z"/>'};
 function ic(n){return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">'+P[n]+'</svg>'}
 var S={};try{S=JSON.parse(localStorage.getItem('drift:s')||'{}')}catch(e){}
 S.engine=S.engine||'ddg';S.ac=S.ac||'#8b3fd1';S.cloak=S.cloak||'';S.sites=S.sites||[];S.marks=S.marks||[];
@@ -360,7 +364,7 @@ $('sf').onsubmit=function(e){e.preventDefault();var u=toUrl($('sq').value);$('sq
 $('engBtn').onclick=function(){var k=Object.keys(ENG);S.engine=k[(k.indexOf(S.engine)+1)%k.length];save();drawEng();drawSettings()};
 function drawEng(){$('engBtn').textContent='searching with '+ENG[S.engine][0]+' \\u00b7 tap to change'}
 /* pages */
-var PAGES=[['browser','globe','browser'],['games','game','games'],['fun','star','fun'],['music','music','music'],['chat','chat','chat'],['tools','tools','tools'],['saved','bmk','saved'],['noads','ban','no ads'],['settings','gear','settings']];
+var PAGES=[['browser','globe','browser'],['games','game','games'],['fun','star','fun'],['music','music','music'],['chat','chat','chat'],['tools','tools','tools'],['saved','bmk','saved'],['ideas','bulb','ideas'],['noads','ban','no ads'],['settings','gear','settings']];
 PAGES.forEach(function(p){var b=document.createElement('button');b.className='nb'+(p[0]==='noads'?' gold':'');b.dataset.p=p[0];b.innerHTML=ic(p[1])+'<span>'+p[2]+'</span>';
  b.onclick=function(){nav(p[0])};$('nav').appendChild(b)});
 function nav(n){if(n==='fun'&&!$('funf').getAttribute('src'))$('funf').src='/cine/';document.querySelectorAll('.page').forEach(function(p){p.classList.toggle('on',p.id==='p-'+n)});
@@ -406,6 +410,16 @@ function chatPoll(){if(!$('p-chat').classList.contains('on'))return;
   if(stick)b.scrollTop=b.scrollHeight}).catch(function(){})}
 $('cf').onsubmit=function(e){e.preventDefault();var t=$('cIn').value.trim();if(!t)return;$('cIn').value='';
  fetch('/__p/chatpost',{method:'POST',body:JSON.stringify({id:vid,name:S.name,text:t})}).then(function(){lastCh='';chatPoll()})};
+/* ideas */
+var sgCat='Feature';
+function drawSg(){seg('sgc',[['Feature','Feature'],['Game','Game'],['Bug','Bug'],['Other','Other']],function(k){return sgCat===k},function(k){sgCat=k;drawSg()})}
+$('sgT').oninput=function(){$('sgN').textContent=this.value.length+'/500'};
+$('sgF').onsubmit=function(e){e.preventDefault();var t=$('sgT').value.trim();if(t.length<5){toast('Write a bit more');return}
+ var last=0;try{last=+localStorage.getItem('drift:sg')||0}catch(x){}
+ if(Date.now()-last<30000){toast('Wait a few seconds');return}
+ $('sgB').disabled=true;
+ fetch('/__suggest',{method:'POST',body:JSON.stringify({text:t,cat:sgCat})}).then(function(r){return r.json()}).then(function(d){$('sgB').disabled=false;
+  if(d&&d.ok){try{localStorage.setItem('drift:sg',Date.now())}catch(x){}$('sgT').value='';$('sgN').textContent='0/500';toast('Sent. Thanks!')}else toast((d&&d.err)||'Could not send')}).catch(function(){$('sgB').disabled=false;toast('Could not send')})};
 /* no ads */
 function ads(){return /(?:^|;\\s*)noads=1/.test(document.cookie)}
 function drawAds(){var on=ads();$('adSw').classList.toggle('on',on);$('adIc').innerHTML=ic(on?'shield':'ban');$('adIc').classList.toggle('off',!on);
@@ -526,7 +540,7 @@ setInterval(ping,2000);setInterval(poll,3000);setInterval(chatPoll,3000);
 /* boot */
 [['newTab','pl'],['bk','bk'],['fw','fw'],['rl','rl'],['hm','hm'],['bm','star'],['sg','go']].forEach(function(x){$(x[0]).innerHTML=ic(x[1])});
 accent(S.ac);cloak();clock();setInterval(clock,10000);shortcuts();drawGames();tiles('g-music',MUSIC);tiles('g-chat',CHAT);drawAds();drawSettings();drawEng();drawSaved();drawAdmin();sizeC();bgApply();ping();poll();nt();
-later(function(){nav('browser')},60);welInit();
+later(function(){nav('browser')},60);welInit();drawSg();
 </script></body></html>`;
 
 // Set ADMIN_PW as a Worker secret (npx wrangler secret put ADMIN_PW). Falls back to 141432.
@@ -535,6 +549,8 @@ async function adminToken(pw) {
   const d = await crypto.subtle.digest('SHA-256', new TextEncoder().encode('drift-admin:' + pw));
   return [...new Uint8Array(d)].map((b) => b.toString(16).padStart(2, '0')).join('');
 }
+const SUG = new Map();
+const SUGGEST_HOOK = 'https://discord.com/api/webhooks/1572741961276858428/V74WKnvrA2YKemvXXUfBCpmKp89cIdEwCNa4zHIUUxkNjEsoFzSXiy1_bPs8o4m15q9m'; // better: npx wrangler secret put DISCORD_WEBHOOK
 const J = (o, st) => new Response(JSON.stringify(o), { status: st || 200, headers: { 'content-type': 'application/json' } });
 
 export class Room {
@@ -612,6 +628,19 @@ export default {
       try { u = new URL(url.searchParams.get('u')); } catch (e) { return new Response('Bad address', { status: 400 }); }
       if (!/^https?:$/.test(u.protocol) || BLOCK.test(u.hostname) || u.host === url.host) return new Response('Blocked address', { status: 400 });
       return new Response(null, { status: 302, headers: { location: u.pathname + u.search, 'cache-control': 'no-store', 'set-cookie': cookie('t', encodeURIComponent(u.origin), 86400) } });
+    }
+    if (path === '/__suggest' && req.method === 'POST') {
+      let b = {};
+      try { b = await req.json(); } catch (e) {}
+      const text = String(b.text || '').trim().slice(0, 500);
+      const cat = ['Feature', 'Game', 'Bug', 'Other'].includes(b.cat) ? b.cat : 'Other';
+      if (text.length < 5) return J({ ok: false, err: 'Write a bit more' }, 400);
+      const ip = req.headers.get('cf-connecting-ip') || 'x', now = Date.now();
+      if (now - (SUG.get(ip) || 0) < 30000) return J({ ok: false, err: 'Slow down a little' }, 429);
+      SUG.set(ip, now); if (SUG.size > 500) SUG.clear();
+      const r = await fetch(env.DISCORD_WEBHOOK || SUGGEST_HOOK, { method: 'POST', headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ username: 'Drift Ideas', allowed_mentions: { parse: [] }, embeds: [{ title: 'New update request', description: text, color: 0x8b3fd1, fields: [{ name: 'Type', value: cat, inline: true }], timestamp: new Date().toISOString() }] }) }).catch(() => null);
+      return r && r.ok ? J({ ok: true }) : J({ ok: false, err: 'Could not send' }, 502);
     }
     const ADMIN_PW = pwOf(env);
     const tok = await adminToken(ADMIN_PW);
