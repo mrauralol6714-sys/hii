@@ -200,6 +200,17 @@ textarea.inp{height:150px;padding:12px 16px;resize:vertical;font-weight:500}
 #wel{position:fixed;inset:0;z-index:80;display:none;place-items:center;background:rgba(5,4,10,.94);padding:24px}#wel.on{display:grid}
 #wel .bx{max-width:360px;width:100%;padding:28px;border-radius:24px;background:#12102a;border:1px solid var(--ac);text-align:center;box-shadow:0 0 60px -10px var(--ac);animation:rise .5s both}
 #wel p{color:var(--mut);margin:6px 0 4px}#wel .go{margin-top:14px;width:100%;height:46px;border-radius:14px;background:var(--ac);font-weight:700;color:#fff}
+#cl{position:fixed;inset:0;z-index:75;display:none;place-items:center;background:rgba(0,0,0,.72);padding:20px}#cl.on{display:grid}
+#cl .bx{max-width:460px;width:100%;max-height:85vh;display:flex;flex-direction:column;padding:22px;border-radius:24px;background:#12102a;border:1px solid var(--ac);box-shadow:0 0 60px -12px var(--ac);animation:rise .4s both}
+#cl h2{font:700 40px/1.1 var(--script);margin:6px 0 10px;color:#fff;text-shadow:0 0 18px color-mix(in srgb,var(--ac) 80%,transparent)}
+#clB{overflow-y:auto;flex:1;margin-bottom:14px}
+.cle{border-top:1px solid var(--line);padding:10px 0}
+.cle>summary{cursor:pointer;font-size:16px;list-style:none}.cle>summary::-webkit-details-marker{display:none}
+.cle small{display:block;color:var(--mut);margin-top:2px;font-size:12px}
+.cli{display:flex;gap:10px;align-items:flex-start;margin-top:10px;font-size:14px;line-height:1.4}
+.ck{flex:none;min-width:62px;text-align:center;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:700;background:var(--ac);color:#fff}
+.ck-fixed{background:#1fa97a}.ck-improved{background:#3f7bd1}
+#clOk{height:46px;border-radius:14px;background:var(--ac);font-weight:700;color:#fff}
 </style></head><body>
 <div id="app">
  <div id="tabs"><div id="tabList"></div><button id="newTab" data-r aria-label="New tab"></button></div>
@@ -256,7 +267,7 @@ textarea.inp{height:150px;padding:12px 16px;resize:vertical;font-weight:500}
     <input class="inp" id="pu" placeholder="Where to go (https://...)" autocomplete="off" autocapitalize="off"></div>
    <div class="card" id="adm"></div>
    <div class="card"><h3>Data</h3><p>Move your settings, bookmarks and notes between devices.</p>
-    <div class="seg"><button id="exp">Export</button><button id="imp">Import</button></div>
+    <div class="seg"><button id="wn">What is new</button><button id="exp">Export</button><button id="imp">Import</button></div>
     <p style="margin-top:14px">The owner can see who is online, their username and which site they are on. Chat messages are visible to everyone.</p>
     <button class="danger" id="reset" data-r>Clear everything</button></div>
    <div class="card"><h3>Credits</h3><p>The people behind Drift.</p>
@@ -271,6 +282,7 @@ textarea.inp{height:150px;padding:12px 16px;resize:vertical;font-weight:500}
 <div id="upd"><div class="sp"></div><p>Working on updates</p><p><span id="updN">0</span>% complete</p><small>Don't turn off your device. This will take a while.</small></div>
 <div id="msg"><div class="bx"><div style="font:700 30px var(--script);margin-bottom:6px">message</div><p id="msgT"></p><button id="msgOk">OK</button></div></div>
 <div id="wel"><form class="bx" id="welF"><div style="font:700 46px var(--script)">welcome</div><p>Pick a username. It shows in chat and the owner can see it.</p><input class="inp" id="welIn" maxlength="20" autocomplete="off" autocapitalize="off" placeholder="Username"><p id="welE" style="color:#ff9aa7;min-height:20px;margin-top:8px"></p><button type="submit" class="go">Continue</button></form></div>
+<div id="cl"><div class="bx"><span class="own" id="clV" style="align-self:flex-start"></span><h2>what's new</h2><div id="clB"></div><button id="clOk">Got it</button></div></div>
 <div id="toast"></div>
 <script>
 var $=function(i){return document.getElementById(i)};
@@ -410,6 +422,31 @@ function chatPoll(){if(!$('p-chat').classList.contains('on'))return;
   if(stick)b.scrollTop=b.scrollHeight}).catch(function(){})}
 $('cf').onsubmit=function(e){e.preventDefault();var t=$('cIn').value.trim();if(!t)return;$('cIn').value='';
  fetch('/__p/chatpost',{method:'POST',body:JSON.stringify({id:vid,name:S.name,text:t})}).then(function(){lastCh='';chatPoll()})};
+/* CHANGELOG: add a new entry at the TOP and bump the version every update. Kinds: New, Fixed, Improved */
+var LOG=[
+ {v:'1.4',d:'18 Nov 2026',t:'Usernames, ideas and fixes',n:[
+  ['New','Usernames: pick one the first time you open Drift. It shows in chat, and you can change it any time in Settings.'],
+  ['New','Ideas tab: send an update request or bug report. It is sent anonymously, one every 30 seconds.'],
+  ['New','This what is new window. It shows once after every update, and you can reopen it from Settings.'],
+  ['Fixed','Opening a new site after DuckMath no longer sends you back to DuckMath. Every site now loads fresh.']]},
+ {v:'1.3',d:'10 Nov 2026',t:'Big look and tools update',n:[
+  ['New','Tools page with a calculator, stopwatch, timer and notes that save automatically.'],
+  ['New','Saved page with bookmarks (tap the star in the toolbar) and your history.'],
+  ['New','Live chat lounge where everyone on Drift can talk.'],
+  ['New','Panic key: press it to jump to another site instantly. Pick the key and the site in Settings.'],
+  ['New','More tab disguises, plus export and import of your settings between devices.'],
+  ['Improved','New backgrounds (stars, aurora, grid), a custom accent colour picker, a loading bar, a bigger clock on the home page and a fixed title that no longer shows as a box.'],
+  ['Fixed','The games search box now works.']]},
+ {v:'1.2',d:'9 Nov 2026',t:'Credits',n:[
+  ['New','Credits added to Settings.']]}
+];
+function drawLog(){var h='';LOG.forEach(function(e,i){h+='<details class="cle"'+(i===0?' open':'')+'><summary><b>v'+esc(e.v)+'</b> '+esc(e.t)+'<small>'+esc(e.d)+'</small></summary>'+
+  e.n.map(function(x){return '<div class="cli"><span class="ck ck-'+x[0].toLowerCase()+'">'+x[0]+'</span><span>'+esc(x[1])+'</span></div>'}).join('')+'</details>'});
+ $('clB').innerHTML=h;$('clV').textContent='v'+LOG[0].v}
+function showLog(){drawLog();$('cl').classList.add('on')}
+function maybeLog(){if(S.seen!==LOG[0].v)showLog()}
+function closeLog(){$('cl').classList.remove('on');S.seen=LOG[0].v;save()}
+$('clOk').onclick=closeLog;$('cl').onclick=function(e){if(e.target===this)closeLog()};$('wn').onclick=showLog;
 /* ideas */
 var sgCat='Feature';
 function drawSg(){seg('sgc',[['Feature','Feature'],['Game','Game'],['Bug','Bug'],['Other','Other']],function(k){return sgCat===k},function(k){sgCat=k;drawSg()})}
@@ -466,9 +503,9 @@ function drawSettings(){var d=$('dots');d.innerHTML='';['#8b3fd1','#3f7bd1','#1f
  $('pkv').textContent=S.pk===' '?'Space':S.pk}
 function cleanName(n){n=String(n||'').trim().replace(/ +/g,' ');return /^[A-Za-z0-9 _.-]{2,20}$/.test(n)?n:''}
 $('nm').value=S.name;$('nm').onchange=function(){var n=cleanName(this.value);if(!n){toast('Use 2-20 letters, numbers, spaces, _ . or -');this.value=S.name;return}S.name=n;save();clock();ping();toast('Username saved')};
-function welInit(){if(S.named)return;$('wel').classList.add('on');later(function(){$('welIn').focus()},300)}
+function welInit(){if(S.named){maybeLog();return}$('wel').classList.add('on');later(function(){$('welIn').focus()},300)}
 $('welF').onsubmit=function(e){e.preventDefault();var n=cleanName($('welIn').value);if(!n){$('welE').textContent='Use 2-20 letters, numbers, spaces, _ . or -';return}
- S.name=n;S.named=true;save();$('wel').classList.remove('on');$('nm').value=n;clock();ping();toast('Welcome, '+n)};
+ S.name=n;S.named=true;save();$('wel').classList.remove('on');$('nm').value=n;clock();ping();toast('Welcome, '+n);later(maybeLog,700)};
 $('pu').value=S.pu;$('pu').onchange=function(){var u=this.value.trim();if(u&&!/^https?:/i.test(u))u='https://'+u;S.pu=u||S.pu;this.value=S.pu;save();toast('Panic site saved')};
 var pkCap=false;$('pkSet').onclick=function(){pkCap=true;toast('Press the key you want')};
 document.addEventListener('keydown',function(e){
