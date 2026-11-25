@@ -211,6 +211,11 @@ textarea.inp{height:150px;padding:12px 16px;resize:vertical;font-weight:500}
 .ck{flex:none;min-width:62px;text-align:center;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:700;background:var(--ac);color:#fff}
 .ck-fixed{background:#1fa97a}.ck-improved{background:#3f7bd1}
 #clOk{height:46px;border-radius:14px;background:var(--ac);font-weight:700;color:#fff}
+#fsb{position:fixed;right:14px;bottom:14px;z-index:60;width:38px;height:38px;border-radius:12px;display:none;place-items:center;background:rgba(10,10,16,.62);color:#fff;border:1px solid rgba(255,255,255,.22);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);cursor:pointer;opacity:.75;transition:opacity .2s,transform .15s}
+#fsb:hover{opacity:1;transform:scale(1.08)}#fsb svg{width:19px;height:19px}
+body:has(#stage.browsing) #fsb{display:grid}
+body.fsm #tabs,body.fsm #bar,body.fsm #ban,body.fsm #nav{display:none!important}
+body.fsm #fsb{opacity:.35}body.fsm #fsb:hover{opacity:1}
 </style></head><body>
 <div id="app">
  <div id="tabs"><div id="tabList"></div><button id="newTab" data-r aria-label="New tab"></button></div>
@@ -278,6 +283,7 @@ textarea.inp{height:150px;padding:12px 16px;resize:vertical;font-weight:500}
  </main>
  <nav id="nav"><div id="ind"></div></nav>
 </div>
+<button id="fsb" type="button" aria-label="Full screen" title="Full screen"></button>
 <div id="frz"><div class="sp"></div><p id="frzT">Page not responding...</p></div>
 <div id="upd"><div class="sp"></div><p>Working on updates</p><p><span id="updN">0</span>% complete</p><small>Don't turn off your device. This will take a while.</small></div>
 <div id="msg"><div class="bx"><div style="font:700 30px var(--script);margin-bottom:6px">message</div><p id="msgT"></p><button id="msgOk">OK</button></div></div>
@@ -353,7 +359,12 @@ function draw(){var l=$('tabList'),sg=tabs.map(function(t){return t.id+t.title+t
  $('bm').classList.toggle('on',!!(cur&&cur.url&&isBm(cur.url)))}
 function closeTab(t){var i=tabs.indexOf(t);tabs.splice(i,1);if(!tabs.length)return nt();if(cur===t){cur=tabs[Math.max(0,i-1)];cur.url?load(cur.url):showHome()}draw()}
 function ldDone(){$('ld').style.width='100%';later(function(){$('ld').style.opacity='0';later(function(){$('ld').style.width='0'},350)},250)}
-function showHome(){vt=0;$('stage').classList.remove('browsing');$('view').src='about:blank';$('ld').style.opacity='0';draw()}
+var FSI='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>',FSX='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/></svg>';
+function fsSet(on){document.body.classList.toggle('fsm',on);$('fsb').innerHTML=on?FSX:FSI;$('fsb').title=on?'Exit full screen':'Full screen';var de=document.documentElement;
+ try{if(on&&!document.fullscreenElement&&de.requestFullscreen){var p=de.requestFullscreen();p&&p.catch&&p.catch(function(){})}else if(!on&&document.fullscreenElement&&document.exitFullscreen){document.exitFullscreen()}}catch(e){}}
+$('fsb').innerHTML=FSI;$('fsb').onclick=function(){fsSet(!document.body.classList.contains('fsm'))};
+document.addEventListener('fullscreenchange',function(){if(!document.fullscreenElement&&document.body.classList.contains('fsm'))fsSet(false)});
+function showHome(){if(document.body.classList.contains('fsm'))fsSet(false);vt=0;$('stage').classList.remove('browsing');$('view').src='about:blank';$('ld').style.opacity='0';draw()}
 function load(u){try{if(parent!==window)parent.postMessage({hubnav:1},location.origin)}catch(e){}vt=cur.id;$('stage').classList.add('browsing');var l=$('ld');l.style.transition='none';l.style.width='0';l.style.opacity='1';
  later(function(){l.style.transition='width .4s,opacity .3s';l.style.width='70%'},30);$('view').src='/__go?u='+encodeURIComponent(u)}
 $('view').onload=function(){if($('stage').classList.contains('browsing'))ldDone()};
@@ -424,6 +435,8 @@ $('cf').onsubmit=function(e){e.preventDefault();var t=$('cIn').value.trim();if(!
  fetch('/__p/chatpost',{method:'POST',body:JSON.stringify({id:vid,name:S.name,text:t})}).then(function(){lastCh='';chatPoll()})};
 /* CHANGELOG: add a new entry at the TOP and bump the version every update. Kinds: New, Fixed, Improved */
 var LOG=[
+ {v:'2.2',d:'25 Nov 2026',t:'Full screen button',n:[
+  ['New','A full screen button (bottom right corner) when you are on a game or site. It hides every bit of Drift and makes the page your whole screen. Tap it again to come back.']]},
  {v:'2.1',d:'25 Nov 2026',t:'DONT CLICK',n:[
   ['New','A new tile on the Games page called DONT CLICK. If you tap it, it opens playgta5.com through the proxy and shows a warning.'],
   ['Improved','Pop-up messages can now stay on screen longer when they are important.']]},
