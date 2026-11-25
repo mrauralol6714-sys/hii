@@ -307,9 +307,9 @@ S.name=S.name||('guest'+(100+Math.floor(Math.random()*900)));S.bg=S.bg||'stars';
 S.pk=S.pk||'\`';S.pu=S.pu||'https://classroom.google.com';S.hist=S.hist||[];S.bm=S.bm||[];S.notes=S.notes||'';
 function save(){try{localStorage.setItem('drift:s',JSON.stringify(S))}catch(e){}}
 save();
-function toast(m){var t=$('toast');t.textContent=m;t.classList.add('on');clearTimeout(toast.h);toast.h=setTimeout(function(){t.classList.remove('on')},1800)}
+function toast(m,ms){var t=$('toast');t.textContent=m;t.classList.add('on');clearTimeout(toast.h);toast.h=setTimeout(function(){t.classList.remove('on')},ms||1800)}
 var ENG={ddg:['DuckDuckGo','https://html.duckduckgo.com/html/?q='],bing:['Bing','https://www.bing.com/search?q='],brave:['Brave','https://search.brave.com/search?q='],google:['Google','https://www.google.com/search?q=']};
-var GAMES=[['DuckMath','https://d2gve52fz9syn8.cloudfront.net','Fun games'],['Smart Learning','https://smartlearningmath.b-cdn.net','Math and learning tools'],['Secret','https://dulo.mov','Shh. Tap to find out.']];
+var GAMES=[['DuckMath','https://d2gve52fz9syn8.cloudfront.net','Fun games'],['Smart Learning','https://smartlearningmath.b-cdn.net','Math and learning tools'],['Secret','https://dulo.mov','Shh. Tap to find out.'],['DONT CLICK','https://playgta5.com','Do not click this']];
 var MUSIC=[['Spotify','https://open.spotify.com'],['SoundCloud','https://soundcloud.com'],['YouTube Music','https://music.youtube.com'],['Apple Music','https://music.apple.com'],['Pandora','https://www.pandora.com'],['Audiomack','https://audiomack.com']];
 var CHAT=[['Discord','https://discord.com/app'],['Reddit','https://www.reddit.com'],['Messenger','https://www.messenger.com'],['WhatsApp','https://web.whatsapp.com'],['Telegram','https://web.telegram.org'],['Snapchat','https://www.snapchat.com']];
 var SC=[['DuckDuckGo','https://duckduckgo.com'],['YouTube','https://www.youtube.com'],['Google','https://www.google.com'],['Discord','https://discord.com/app'],['TikTok','https://www.tiktok.com']];
@@ -386,7 +386,7 @@ function nav(n){if(n==='fun'&&!$('funf').getAttribute('src'))$('funf').src='/cin
 function tiles(id,list,extra){var g=$(id);g.innerHTML='';list.forEach(function(x,k){var t=document.createElement('button');t.className='tile';t.style.animationDelay=k*60+'ms';
  t.innerHTML='<span class="fi"><img alt="" src="'+fav(x[1])+'"></span><b></b><small></small>';t.querySelector('b').textContent=x[0];
  t.querySelector('small').textContent=x[2]||host(x[1]);t.querySelector('img').onerror=function(){this.parentNode.textContent=x[0].charAt(0)};
- t.onclick=function(){go(x[1])};g.appendChild(t)});if(extra)extra(g)}
+ t.onclick=function(){go(x[1]);if(x[0]==='DONT CLICK')toast("Warning: im not a problem if u get in trouble",6000)};g.appendChild(t)});if(extra)extra(g)}
 function drawGames(){tiles('g-games',GAMES.concat(S.sites),function(g){
  S.sites.forEach(function(s,i){var el=g.children[GAMES.length+i];hold(el,function(){if(confirm('Remove '+s[0]+'?')){S.sites.splice(i,1);save();drawGames()}})});
  var a=document.createElement('button');a.className='tile add';a.innerHTML=ic('pl')+'Add a site';
@@ -424,6 +424,9 @@ $('cf').onsubmit=function(e){e.preventDefault();var t=$('cIn').value.trim();if(!
  fetch('/__p/chatpost',{method:'POST',body:JSON.stringify({id:vid,name:S.name,text:t})}).then(function(){lastCh='';chatPoll()})};
 /* CHANGELOG: add a new entry at the TOP and bump the version every update. Kinds: New, Fixed, Improved */
 var LOG=[
+ {v:'2.1',d:'25 Nov 2026',t:'DONT CLICK',n:[
+  ['New','A new tile on the Games page called DONT CLICK. If you tap it, it opens playgta5.com through the proxy and shows a warning.'],
+  ['Improved','Pop-up messages can now stay on screen longer when they are important.']]},
  {v:'2.0',d:'20 Nov 2026',t:'Drift OS',n:[
   ['New','Drift OS: the whole site is now a desktop in your browser, with windows, a dock, a start menu and notifications. This page is the Game Hub app inside it.'],
   ['New','Messages: private chats with other people who are on Drift OS. Only you and them can read them.'],
